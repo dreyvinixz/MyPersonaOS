@@ -87,56 +87,59 @@ The product is personal-only for now.
 
 ### Exists
 
+### Exists
+
 - repository initialized;
-- `Today` command center (Main Focus, DateClock, Today Tasks, Quick Capture, Module Summaries);
-- client-side reactive `localStorage` state management (`usePersonaState`);
-- interactive Inbox, Tasks, Projects, Content Studio, and English Lab views;
+- `Today` command center (Main Focus, DateClock, Today Tasks, Quick Capture, ModuleSummaries);
+- Global Quick Capture modal (`Ctrl+K` / `Cmd+K`) and interactive Inbox processing (convert to Task/Project, archive, filter bar);
+- Oil Slick design system, Plus Jakarta Sans & JetBrains Mono typography, high text contrast;
+- **Supabase V0.2 Foundation**:
+  - PostgreSQL schema migration (`supabase/migrations/20260807000000_v0_2_schema.sql`) with automatic `updated_at` triggers and check constraints;
+  - Row Level Security (RLS) policies on all tables enforcing strict `auth.uid() = user_id` isolation;
+  - Private cookie-based SSR authentication (`@supabase/ssr`, `/login`, `middleware.ts`, `AuthProvider`);
+  - Modular repository architecture (`LocalRepository`, `SupabaseRepository`, `PersonaStore`);
+  - Idempotent local-to-cloud atomic RPC migration (`import_local_snapshot`);
+  - Supabase Realtime channel subscription (`subscribeToPersonaRealtime`) for multi-device sync (PC ↔ Mobile);
+  - UI `SyncStatus` indicator badge (`initializing`, `local`, `syncing`, `synced`, `offline`, `error`).
 - AI collaboration documentation under `.agents/` and skills bank;
 - open-source files (`LICENSE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `.env.example`);
 - GitHub Actions CI/CD workflows (`ci.yml`, `release.yml`) with automated diagnostic log capture and artifact upload on build failure;
-- Python CI monitoring CLI script (`scripts/ci_watch.py` / `npm run ci:watch`) to monitor Actions runs, download logs, and extract categorized errors locally;
-- documentation suite under `docs/` (`about.md`, `architecture.md`, `README.md`), GitHub Wiki pages (`docs/Wiki/` with `Home.md`, `Architecture.md`, `_Sidebar.md`, `_Footer.md`), and `CHANGELOG.md`.
-
-
+- Python CI monitoring CLI script (`scripts/ci_watch.py` / `npm run ci:watch`);
+- documentation suite under `docs/` (`about.md`, `architecture.md`, `README.md`), GitHub Wiki pages (`docs/Wiki/`), and `CHANGELOG.md`.
 
 ### Not yet reliable/complete
 
-- Supabase PostgreSQL database (V0.2);
-- private authentication & RLS policies;
-- cross-device cloud sync;
 - full PWA offline service worker caching;
 - production Vercel deployment;
 - AI orchestrator API integration.
 
-
 ## Current milestone
 
-### V0.1 — usable personal foundation
+### V0.2 — Supabase Persistence, RLS & Private Multi-Device Sync
 
-Goal: make the system useful enough to open every day.
+Goal: transform MyPersonaOS into a private, multi-device cloud-synchronized system (PC ↔ Mobile).
 
-Priority order:
+Completed items:
 
-1. functional Quick Capture;
-2. Inbox;
-3. Today tasks;
-4. Projects;
-5. Content Studio;
-6. English Lab;
-7. PWA shell;
-8. private persistence and sync.
+1. PostgreSQL V0.2 Schema & RLS policies;
+2. Refactored `InboxItemStatus` enum (`pending` | `archived` | `converted`) & UUID primary keys;
+3. Private cookie-based authentication (`/login`);
+4. Modular `PersonaStore` & repository abstraction;
+5. Idempotent atomic local-to-cloud RPC migration;
+6. Realtime multi-device synchronization;
+7. Visual `SyncStatus` indicator in Sidebar.
 
 ## Current Git workflow
 
 Active feature development is on:
 
-`agent/quick-capture-inbox`
+`agent/supabase-persistence`
 
 against:
 
 `main`
 
-(The initial bootstrap branch `agent/bootstrap-v0.1` has been merged into `main`).
+(Previous feature branches `agent/quick-capture-inbox` and `agent/oil-slick-theme` have been merged into `main`).
 
 
 ## Known validation constraint
