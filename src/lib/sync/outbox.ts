@@ -98,20 +98,21 @@ function diffCollection<T extends { id: string }>(
   onUpsert: (entity: T) => CloudMutation,
   onDelete: (id: string) => CloudMutation
 ): CloudMutation[] {
-  const mutations: CloudMutation[] = [];
+  const upserts: CloudMutation[] = [];
+  const deletes: CloudMutation[] = [];
   const previousById = new Map(previous.map((entity) => [entity.id, entity]));
   const nextById = new Map(next.map((entity) => [entity.id, entity]));
 
   next.forEach((entity) => {
     const before = previousById.get(entity.id);
-    if (!before || changed(before, entity)) mutations.push(onUpsert(entity));
+    if (!before || changed(before, entity)) upserts.push(onUpsert(entity));
   });
 
   previous.forEach((entity) => {
-    if (!nextById.has(entity.id)) mutations.push(onDelete(entity.id));
+    if (!nextById.has(entity.id)) deletes.push(onDelete(entity.id));
   });
 
-  return mutations;
+  return [...upserts, ...deletes];
 }
 
 export function buildCloudMutations(
@@ -125,18 +126,19 @@ export function buildCloudMutations(
     mutations.push(withMeta(userId, { kind: "saveMainFocus", value: next.mainFocus }));
   }
 
+  // Projects precede Tasks so a newly linked task never races its FK target.
   mutations.push(
-    ...diffCollection(
-      previous.tasks,
-      next.tasks,
-      (entity) => withMeta(userId, { kind: "upsertTask", entity }),
-      (entityId) => withMeta(userId, { kind: "deleteTask", entityId })
-    ),
     ...diffCollection(
       previous.projects,
       next.projects,
       (entity) => withMeta(userId, { kind: "upsertProject", entity }),
       (entityId) => withMeta(userId, { kind: "deleteProject", entityId })
+    ),
+    ...diffCollection(
+      previous.tasks,
+      next.tasks,
+      (entity) => withMeta(userId, { kind: "upsertTask", entity }),
+      (entityId) => withMeta(userId, { kind: "deleteTask", entityId })
     ),
     ...diffCollection(
       previous.inboxItems,
@@ -176,14 +178,14 @@ async function applyMutation(mutation: CloudMutation): Promise<void> {
   switch (mutation.kind) {
     case "saveMainFocus":
       return supabaseRepository.saveMainFocus(mutation.userId, mutation.value);
-    case "upsertTask":
-      return supabaseRepository.upsertTask(mutation.userId, mutation.entity);
-    case "deleteTask":
-      return supabaseRepository.deleteTask(mutation.userId, mutation.entityId);
     case "upsertProject":
       return supabaseRepository.upsertProject(mutation.userId, mutation.entity);
     case "deleteProject":
       return supabaseRepository.deleteProject(mutation.userId, mutation.entityId);
+    case "upsertTask":
+      return supabaseRepository.upsertTask(mutation.userId, mutation.entity);
+    case "deleteTask":
+      return supabaseRepository.deleteTask(mutation.userId, mutation.entityId);
     case "upsertInboxItem":
       return supabaseRepository.upsertInboxItem(mutation.userId, mutation.entity);
     case "deleteInboxItem":
