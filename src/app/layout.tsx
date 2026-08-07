@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#09090E",
+  themeColor: "#05060A",
   width: "device-width",
   initialScale: 1,
 };
@@ -29,16 +29,12 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body>
         <ClientShell>
-          <div
-            className="flex h-screen overflow-hidden"
-            style={{ background: "var(--bg)" }}
-          >
+          <div className="app-shell flex h-screen overflow-hidden">
             <Sidebar />
-            <main className="flex-1 overflow-y-auto">{children}</main>
+            <main className="app-main flex-1 overflow-y-auto">{children}</main>
           </div>
         </ClientShell>
       </body>
     </html>
   );
 }
-
