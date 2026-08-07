@@ -62,10 +62,16 @@ export function normalizeLegacySnapshot(state: PersonaState): PersonaState {
           (UUID_RE.test(convertedToId) ? convertedToId : undefined);
       }
 
+      const hasValidLineage = Boolean(item.convertedToType && convertedToId);
+      const status =
+        item.status === "converted" && !hasValidLineage ? "archived" : item.status;
+
       return {
         ...item,
         id: inboxIds.get(item.id)!,
-        convertedToId,
+        status,
+        convertedToType: status === "converted" ? item.convertedToType : undefined,
+        convertedToId: status === "converted" ? convertedToId : undefined,
       };
     }),
     contentPieces: state.contentPieces.map((content) => ({
@@ -102,11 +108,13 @@ export async function runLocalToCloudMigration(
     };
   }
 
-  // Keep a recoverable browser-side snapshot before the first cloud migration.
+  // Keep the exact legacy snapshot recoverable, then normalize local IDs before
+  // touching cloud. If the RPC fails, subsequent offline edits still use UUIDs
+  // and can safely remain queued for a later retry.
   localRepository.createBackup("pre-v0.2-cloud-migration");
-
   const localSnapshot = localRepository.getState();
   const normalizedSnapshot = normalizeLegacySnapshot(localSnapshot);
+  localRepository.saveState(normalizedSnapshot);
 
   const { data, error: rpcError } = await supabase.rpc("import_local_snapshot", {
     snapshot: normalizedSnapshot,
