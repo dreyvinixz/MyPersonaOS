@@ -25,6 +25,10 @@ Do not blindly load every skill. Too much context can be as harmful as too littl
 | PWA & Mobile | Installability, responsive/mobile behavior, offline | `pwa-mobile.md` |
 | Quality & Delivery | Validation, dependencies, refactors, completion | `quality-and-delivery.md` |
 | Agent Handoff | Finishing/pausing work for another AI | `agent-handoff.md` |
+| Quick Capture & Inbox | Zero-friction input buffer & task conversion | `quick-capture-and-inbox.md` |
+| Tasks & Projects | Goal-aligned task hierarchy & project tracking | `tasks-and-projects-system.md` |
+| AI Orchestrator | Smart planning recommendations & non-blocking AI | `ai-orchestrator-and-automation.md` |
+| CI/CD & Releases | GitHub Actions, SemVer releases & changelogs | `ci-cd-and-release-management.md` |
 
 Machine-readable metadata lives in `catalog.yaml`.
 

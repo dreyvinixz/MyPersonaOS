@@ -29,3 +29,19 @@ skills:
     file: agent-handoff.md
     triggers: [handoff, blocked, unfinished, continuation, context-transfer]
     purpose: Transfer work between agents without losing decisions, risks, or next actions.
+  - id: quick-capture-and-inbox
+    file: quick-capture-and-inbox.md
+    triggers: [capture, inbox, note, shortcut, voice, speed, tag]
+    purpose: Provide a zero-friction input buffer for instant thoughts and task conversion.
+  - id: tasks-and-projects-system
+    file: tasks-and-projects-system.md
+    triggers: [task, project, goal, priority, status, deadline, hierarchy]
+    purpose: Maintain a goal-aligned task and project hierarchy focused on execution.
+  - id: ai-orchestrator-and-automation
+    file: ai-orchestrator-and-automation.md
+    triggers: [ai, orchestrator, automation, prompt, calendar, review, smart-plan]
+    purpose: Provide non-blocking AI assistance and daily planning recommendations.
+  - id: ci-cd-and-release-management
+    file: ci-cd-and-release-management.md
+    triggers: [ci, cd, github-actions, release, tag, semver, changelog, workflow]
+    purpose: Manage automated CI pipelines, semantic versioning, and open-source release notes.

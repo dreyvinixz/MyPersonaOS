@@ -1,5 +1,6 @@
 # MyPersonaOS
 
+[![CI Pipeline](https://github.com/dreyvinixz/MyPersonaOS/actions/workflows/ci.yml/badge.svg)](https://github.com/dreyvinixz/MyPersonaOS/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](file:///d:/MyPersonaOS/LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)
@@ -10,9 +11,15 @@ A personal operating system for focus, content creation, projects, and learning.
 
 ---
 
-## Vision
+## Documentation
 
-MyPersonaOS is a private, personal-first operating system that brings together daily focus, idea capture, tasks, projects, content creation, and an evolving English-learning method. It is open source so anyone can host, customize, or contribute to their personal life stack.
+Explore the project documentation in the **[docs/](docs/)** directory:
+
+- 📖 **[About MyPersonaOS](docs/about.md)** — Product vision, core philosophy, and domain areas.
+- 🏗️ **[Architecture & Design](docs/architecture.md)** — Tech stack, client state vs. Supabase backend, PWA & security model.
+- 📜 **[Changelog & Releases](CHANGELOG.md)** — Release notes and versioning history.
+- 🤝 **[Contributing Guidelines](CONTRIBUTING.md)** — Setup, PR process, and community standards.
+- 🤖 **[AI Agent Rules (AGENTS.md)](AGENTS.md)** — Mandates and entry points for AI pair programming.
 
 ---
 
@@ -58,27 +65,19 @@ The initial version uses client-side state (`localStorage`) for fast capture and
 - **Styling**: Tailwind CSS v4
 - **Persistence (Planned V0.2)**: Supabase (PostgreSQL, Auth, Storage, Row Level Security)
 - **Deployment**: Vercel & PWA
+- **CI/CD**: GitHub Actions (`ci.yml` & `release.yml`)
 
 ---
 
 ## Roadmap
 
-- [x] **V0.1 — Bootstrap**: Client-side state, UI foundation, Open Source setup
+- [x] **V0.1 — Bootstrap**: Client-side state, UI foundation, Open Source setup, CI/CD & Documentation
 - [ ] **V0.2 — Persistence**: Supabase integration, private auth, PostgreSQL, RLS, cross-device sync
 - [ ] **V0.3 — Workflows**: Interactive task management, content stages, English vocabulary sessions
 - [ ] **V0.4 — Orchestrator**: Calendar integration, AI prioritization, weekly reviews
 
 ---
 
-## Contributing & AI Agents
-
-Contributions are welcome! Whether you are a human developer or an AI agent pair-programming on this repo:
-
-- **Human Developers**: Please read [CONTRIBUTING.md](file:///d:/MyPersonaOS/CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](file:///d:/MyPersonaOS/CODE_OF_CONDUCT.md).
-- **AI Agents**: Mandatory entry point is [AGENTS.md](file:///d:/MyPersonaOS/AGENTS.md) and [.agents/ONBOARDING.md](file:///d:/MyPersonaOS/.agents/ONBOARDING.md).
-
----
-
 ## License
 
-Distributed under the **MIT License**. See [LICENSE](file:///d:/MyPersonaOS/LICENSE) for more information.
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.

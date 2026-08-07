@@ -88,24 +88,23 @@ The product is personal-only for now.
 ### Exists
 
 - repository initialized;
-- initial `Today` dashboard foundation;
-- visual foundation for CodeToday / Personal / Quant Base / English areas;
-- AI collaboration documentation under `.agents/`.
+- `Today` command center (Main Focus, DateClock, Today Tasks, Quick Capture, Module Summaries);
+- client-side reactive `localStorage` state management (`usePersonaState`);
+- interactive Inbox, Tasks, Projects, Content Studio, and English Lab views;
+- AI collaboration documentation under `.agents/` and skills bank;
+- open-source files (`LICENSE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `.env.example`);
+- GitHub Actions CI/CD workflows (`ci.yml`, `release.yml`);
+- documentation suite under `docs/` (`about.md`, `architecture.md`, `README.md`) and `CHANGELOG.md`.
 
 ### Not yet reliable/complete
 
-- Quick Capture persistence;
-- Inbox workflow;
-- editable task system;
-- projects CRUD;
-- Content Studio workflow;
-- English learning persistence;
-- authentication;
-- Supabase database;
-- cross-device sync;
-- PWA installability/offline behavior;
-- production deployment;
-- orchestrator/AI layer.
+- Supabase PostgreSQL database (V0.2);
+- private authentication & RLS policies;
+- cross-device cloud sync;
+- full PWA offline service worker caching;
+- production Vercel deployment;
+- AI orchestrator API integration.
+
 
 ## Current milestone
 

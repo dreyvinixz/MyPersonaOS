@@ -1,20 +1,40 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Sidebar } from "@/components/layout/Sidebar";
 
 export const metadata: Metadata = {
-  title: "MyPersonaOS",
-  description: "A personal operating system for focus, content, projects and learning.",
+  title: "MyPersonaOS — Personal Life Operating System",
+  description: "What deserves attention today?",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "MyPersonaOS",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#080b12",
-  colorScheme: "dark",
+  themeColor: "#09090E",
+  width: "device-width",
+  initialScale: 1,
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="pt-BR">
+      <body>
+        <div
+          className="flex h-screen overflow-hidden"
+          style={{ background: "var(--bg)" }}
+        >
+          <Sidebar />
+          <main className="flex-1 overflow-y-auto">{children}</main>
+        </div>
+      </body>
     </html>
   );
 }

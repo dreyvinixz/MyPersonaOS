@@ -7,6 +7,8 @@
 /out/
 /build
 /dist
+*.tsbuildinfo
+
 
 # Environment variables & secrets (CRITICAL FOR OPEN SOURCE)
 .env
@@ -36,7 +38,13 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+
 # System files
+
 .DS_Store
 .DS_Store?
 ._*
