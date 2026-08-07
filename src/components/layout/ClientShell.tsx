@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import { GlobalQuickCapture } from "@/components/capture/GlobalQuickCapture";
 
 /**
@@ -8,9 +9,9 @@ import { GlobalQuickCapture } from "@/components/capture/GlobalQuickCapture";
  */
 export function ClientShell({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <AuthProvider>
       {children}
       <GlobalQuickCapture />
-    </>
+    </AuthProvider>
   );
 }
