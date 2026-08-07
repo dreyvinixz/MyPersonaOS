@@ -22,8 +22,16 @@ Use this document as the canonical handoff format whenever work is unfinished, b
   4. **Core Application & Local Storage**:
      - Integrated domain types, dark mode CSS design system, and UI components from `MyPersonaOS-v1.zip` into `src/`.
      - Implemented reactive `localStorage` state hook (`usePersonaState` in `src/lib/storage.ts`).
-     - Connected Today Command Center (`DateClock`, `MainFocus`, `TodayTasks`, `QuickCapture`, `ModuleSummaries`) and domain pages (`/inbox`, `/tasks`, `/projects`, `/content`, `/english`).
-  5. **Releases & Branch Transition**:
+     - Connected Today Command Center (`DateClock`, `MainFocus`, `TodayTasks`, `QuickCapture`, `ModuleSummaries`) and domain pages.
+  5. **Quick Capture & Inbox Feature (agent/quick-capture-inbox)**:
+     - **Global Quick Capture modal** (`Ctrl+K` / `Cmd+K`) — zero-friction capture from any page.
+     - **Inbox processing** — filter bar (All / Pending / Processed), context menu per item.
+     - **Convert Inbox → Task** — modal with editable title, creates task in `pending` status.
+     - **Convert Inbox → Project** — modal with editable name, creates project at 0% progress.
+     - **Archive & Delete** — mark items as processed or remove permanently.
+     - **Sidebar polish** — Inbox unprocessed badge count, Quick Capture shortcut hint button.
+     - **QuickCapture widget refactor** — dashboard widget now triggers global modal instead of duplicating input logic.
+  6. **Releases & Branch Transition**:
      - Published initial tag and GitHub Release `v0.1.0`.
      - Merged `bootstrap-v0.1` into `main` and created active feature branch `agent/quick-capture-inbox`.
 
@@ -49,15 +57,27 @@ Use this document as the canonical handoff format whenever work is unfinished, b
 
 ### Mission
 
-Begin first core product feature slice:
-1. Enhance Quick Capture UI & global keyboard shortcuts.
-2. Refine Inbox processing & item conversion into Today tasks / Projects.
-3. Prepare Supabase client setup for Phase 2 cloud sync.
+Quick Capture & Inbox processing feature slice — **COMPLETE**.
 
 ### Status
 
-`IN_PROGRESS`
+`DONE`
+
+### What was built
+
+| Commit | Description |
+|---|---|
+| `c1d9a46` | `feat: add global quick capture command (Ctrl+K / Cmd+K)` |
+| `5fa9157` | `feat: inbox processing with convert to task, convert to project, archive, and filter bar` |
+| `cfd1704` | `polish: sidebar inbox badge, quick capture trigger widget, and inbox UX refinements` |
+
+### Validation
+
+- TypeScript typecheck: ✅ `npx tsc --noEmit` — zero errors
+- Production build: ✅ `npm run build` — 9/9 static pages generated successfully
 
 ### Next best action
 
-Start implementing the Quick Capture keyboard shortcut (`Ctrl+K` / `Cmd+K` global capture modal) and Inbox processing actions.
+1. Merge `agent/quick-capture-inbox` into `main` when ready.
+2. Next feature branch could be `agent/supabase-persistence` for Phase 2 cloud sync.
+3. Or `agent/tasks-projects-crud` for full CRUD on Tasks and Projects pages.
