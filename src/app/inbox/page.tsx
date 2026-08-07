@@ -12,7 +12,6 @@ import {
   MoreHorizontal,
   X,
   Zap,
-  Filter,
 } from "lucide-react";
 import type { InboxItem } from "@/types";
 
@@ -190,18 +189,13 @@ export default function InboxPage() {
             </kbd>
           </div>
         </div>
-        <p
-          className="mt-2 text-sm"
-          style={{ color: "var(--text-muted)" }}
-        >
+        <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
           Capture primeiro. Organize depois.
         </p>
       </div>
 
       {/* Filter Bar */}
-      <div
-        className="flex items-center justify-between mb-4 px-1"
-      >
+      <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-1">
           {(
             [
@@ -228,10 +222,7 @@ export default function InboxPage() {
               }
             >
               {label}
-              <span
-                className="text-[10px] font-mono"
-                style={{ opacity: 0.7 }}
-              >
+              <span className="text-[10px] font-mono" style={{ opacity: 0.7 }}>
                 {count}
               </span>
             </button>
@@ -256,16 +247,9 @@ export default function InboxPage() {
       >
         <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
           {filtered.length === 0 ? (
-            <li
-              className="p-12 text-center"
-              style={{ color: "var(--text-muted)" }}
-            >
+            <li className="p-12 text-center" style={{ color: "var(--text-muted)" }}>
               <div className="flex flex-col items-center gap-3">
-                <Inbox
-                  size={40}
-                  strokeWidth={1}
-                  style={{ color: "var(--border)" }}
-                />
+                <Inbox size={40} strokeWidth={1} style={{ color: "var(--border)" }} />
                 <div>
                   <p className="text-sm font-medium mb-1">
                     {filter === "all"
@@ -296,11 +280,8 @@ export default function InboxPage() {
                 key={item.id}
                 className="group p-4 flex items-start justify-between gap-4 transition-colors"
                 style={{
-                  background: item.processed
-                    ? "transparent"
-                    : "var(--card)",
+                  background: item.processed ? "transparent" : "var(--card)",
                 }}
-                onMouseEnter={() => {}}
               >
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <button
@@ -310,9 +291,7 @@ export default function InboxPage() {
                     <CheckCircle2
                       size={20}
                       style={{
-                        color: item.processed
-                          ? "var(--green)"
-                          : "var(--border)",
+                        color: item.processed ? "var(--green)" : "var(--border)",
                       }}
                     />
                   </button>
@@ -325,10 +304,7 @@ export default function InboxPage() {
                     >
                       {item.content}
                     </p>
-                    <p
-                      className="text-[10px] mt-1"
-                      style={{ color: "var(--text-subtle)" }}
-                    >
+                    <p className="text-[10px] mt-1" style={{ color: "var(--text-subtle)" }}>
                       {formatDate(item.createdAt)}
                     </p>
                   </div>
@@ -349,9 +325,7 @@ export default function InboxPage() {
                   <div className="relative">
                     <button
                       onClick={() =>
-                        setActiveMenu(
-                          activeMenu === item.id ? null : item.id
-                        )
+                        setActiveMenu(activeMenu === item.id ? null : item.id)
                       }
                       className="p-1.5 rounded-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                       style={{ color: "var(--text-muted)" }}
@@ -365,8 +339,7 @@ export default function InboxPage() {
                         style={{
                           background: "var(--card)",
                           borderColor: "var(--border)",
-                          boxShadow:
-                            "0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--border)",
+                          boxShadow: "0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--border)",
                         }}
                       >
                         {!item.processed && (
@@ -376,10 +349,7 @@ export default function InboxPage() {
                               className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors text-left hover:bg-[var(--card-hover)]"
                               style={{ color: "var(--text)" }}
                             >
-                              <ListTodo
-                                size={14}
-                                style={{ color: "var(--accent)" }}
-                              />
+                              <ListTodo size={14} style={{ color: "var(--accent)" }} />
                               Converter em Tarefa
                             </button>
                             <button
@@ -387,10 +357,7 @@ export default function InboxPage() {
                               className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors text-left hover:bg-[var(--card-hover)]"
                               style={{ color: "var(--text)" }}
                             >
-                              <FolderPlus
-                                size={14}
-                                style={{ color: "var(--green)" }}
-                              />
+                              <FolderPlus size={14} style={{ color: "var(--green)" }} />
                               Converter em Projeto
                             </button>
                             <button
@@ -398,10 +365,7 @@ export default function InboxPage() {
                               className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors text-left hover:bg-[var(--card-hover)]"
                               style={{ color: "var(--text)" }}
                             >
-                              <Archive
-                                size={14}
-                                style={{ color: "var(--amber)" }}
-                              />
+                              <Archive size={14} style={{ color: "var(--amber)" }} />
                               Arquivar
                             </button>
                           </>
@@ -450,8 +414,7 @@ export default function InboxPage() {
               style={{
                 background: "var(--card)",
                 borderColor: "var(--border)",
-                boxShadow:
-                  "0 25px 60px rgba(0,0,0,0.50), 0 0 0 1px var(--border)",
+                boxShadow: "0 25px 60px rgba(0,0,0,0.50), 0 0 0 1px var(--border)",
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -480,10 +443,7 @@ export default function InboxPage() {
                       <FolderPlus size={13} strokeWidth={2.5} />
                     )}
                   </div>
-                  <span
-                    className="text-sm font-semibold"
-                    style={{ color: "var(--text)" }}
-                  >
+                  <span className="text-sm font-semibold" style={{ color: "var(--text)" }}>
                     {convertingItem.target === "task"
                       ? "Converter em Tarefa"
                       : "Converter em Projeto"}
@@ -528,10 +488,7 @@ export default function InboxPage() {
                     borderColor: "var(--border)",
                   }}
                 />
-                <p
-                  className="text-[11px] mt-3"
-                  style={{ color: "var(--text-subtle)" }}
-                >
+                <p className="text-[11px] mt-3" style={{ color: "var(--text-subtle)" }}>
                   Original:{" "}
                   <span style={{ color: "var(--text-muted)" }}>
                     &ldquo;{convertingItem.item.content.substring(0, 100)}
@@ -568,9 +525,7 @@ export default function InboxPage() {
                     color: "#fff",
                   }}
                 >
-                  {convertingItem.target === "task"
-                    ? "Criar Tarefa"
-                    : "Criar Projeto"}
+                  {convertingItem.target === "task" ? "Criar Tarefa" : "Criar Projeto"}
                 </button>
               </div>
             </div>

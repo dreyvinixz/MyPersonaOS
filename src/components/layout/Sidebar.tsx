@@ -12,10 +12,11 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePersonaState } from "@/lib/storage";
 
 const nav = [
   { href: "/", label: "Today", icon: Home },
-  { href: "/inbox", label: "Inbox", icon: Inbox },
+  { href: "/inbox", label: "Inbox", icon: Inbox, badge: true },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/projects", label: "Projects", icon: Folder },
   { href: "/content", label: "Content", icon: Video },
@@ -24,6 +25,11 @@ const nav = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { state, mounted } = usePersonaState();
+
+  const inboxCount = mounted
+    ? state.inboxItems.filter((i) => !i.processed).length
+    : 0;
 
   return (
     <aside
@@ -52,10 +58,43 @@ export function Sidebar() {
         </span>
       </div>
 
+      {/* Quick Capture Hint */}
+      <div className="px-2 pt-3 pb-1 hidden lg:block">
+        <button
+          onClick={() => {
+            window.dispatchEvent(
+              new KeyboardEvent("keydown", {
+                key: "k",
+                ctrlKey: true,
+                bubbles: true,
+              })
+            );
+          }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all duration-150 hover:bg-[var(--card-hover)]"
+          style={{
+            color: "var(--text-subtle)",
+            border: "1px solid var(--border-subtle)",
+          }}
+        >
+          <Zap size={12} />
+          <span className="flex-1 text-left">Quick Capture</span>
+          <kbd
+            className="font-mono text-[10px] px-1.5 py-0.5 rounded"
+            style={{
+              background: "var(--bg)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            ⌘K
+          </kbd>
+        </button>
+      </div>
+
       {/* Nav */}
       <nav className="flex flex-col gap-1 p-2 flex-1 mt-1">
-        {nav.map(({ href, label, icon: Icon }) => {
+        {nav.map(({ href, label, icon: Icon, badge }) => {
           const active = pathname === href;
+          const showBadge = badge && inboxCount > 0;
           return (
             <Link
               key={href}
@@ -75,11 +114,23 @@ export function Sidebar() {
                     }
               }
             >
-              <Icon
-                size={18}
-                strokeWidth={active ? 2.5 : 1.8}
-                className="shrink-0"
-              />
+              <div className="relative shrink-0">
+                <Icon
+                  size={18}
+                  strokeWidth={active ? 2.5 : 1.8}
+                />
+                {showBadge && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+                    style={{
+                      background: "var(--accent)",
+                      color: "#fff",
+                    }}
+                  >
+                    {inboxCount > 9 ? "9+" : inboxCount}
+                  </span>
+                )}
+              </div>
               <span className="hidden lg:block">{label}</span>
               {active && (
                 <span

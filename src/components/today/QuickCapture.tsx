@@ -1,42 +1,26 @@
 "use client";
 
-import { useState } from "react";
 import { usePersonaState } from "@/lib/storage";
-import { Plus, Link as LinkIcon, Mic, Image, Type } from "lucide-react";
-
-type CaptureType = "text" | "link" | "audio" | "image";
-
-const types: { type: CaptureType; icon: typeof Type; label: string }[] = [
-  { type: "text", icon: Type, label: "Text" },
-  { type: "link", icon: LinkIcon, label: "Link" },
-  { type: "audio", icon: Mic, label: "Audio" },
-  { type: "image", icon: Image, label: "Image" },
-];
+import { Zap, Inbox as InboxIcon, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export function QuickCapture() {
-  const { state, updateState, mounted } = usePersonaState();
-  const [value, setValue] = useState("");
-  const [selected, setSelected] = useState<CaptureType>("text");
+  const { state, mounted } = usePersonaState();
 
   if (!mounted) return null;
 
-  const handleSave = () => {
-    if (!value.trim()) return;
-    const newItem = {
-      id: Date.now().toString(),
-      content: value.trim(),
-      type: selected,
-      createdAt: new Date().toISOString(),
-      processed: false,
-    };
-    updateState((prev) => ({
-      ...prev,
-      inboxItems: [newItem, ...prev.inboxItems],
-    }));
-    setValue("");
-  };
+  const recentCaptures = state.inboxItems.filter((i) => !i.processed).slice(0, 4);
+  const unprocessedCount = state.inboxItems.filter((i) => !i.processed).length;
 
-  const recentCaptures = state.inboxItems.slice(0, 3);
+  const openGlobalCapture = () => {
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "k",
+        ctrlKey: true,
+        bubbles: true,
+      })
+    );
+  };
 
   return (
     <div
@@ -48,64 +32,81 @@ export function QuickCapture() {
         style={{ borderColor: "var(--border)" }}
       >
         <h2 className="text-sm font-semibold" style={{ color: "var(--text)" }}>
-          Quick Capture (Captura Rápida)
+          Quick Capture
         </h2>
-        <div className="flex gap-1">
-          {types.map(({ type, icon: Icon }) => (
-            <button
-              key={type}
-              onClick={() => setSelected(type)}
-              className="p-1.5 rounded-md transition-all"
-              style={
-                selected === type
-                  ? {
-                      background: "var(--accent-dim)",
-                      color: "var(--accent)",
-                    }
-                  : { color: "var(--text-subtle)" }
-              }
-              title={type}
+        <div className="flex items-center gap-2">
+          {unprocessedCount > 0 && (
+            <Link
+              href="/inbox"
+              className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors hover:opacity-80"
+              style={{
+                background: "var(--accent-dim)",
+                color: "var(--accent)",
+              }}
             >
-              <Icon size={14} />
-            </button>
-          ))}
+              <InboxIcon size={10} />
+              {unprocessedCount} na inbox
+            </Link>
+          )}
         </div>
       </div>
 
-      <div className="p-4 flex gap-2">
-        <input
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSave()}
-          placeholder="O que está na sua mente agora?"
-          className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--text-subtle)]"
-          style={{ color: "var(--text)" }}
-        />
+      {/* Trigger for global modal */}
+      <div className="p-4">
         <button
-          onClick={handleSave}
-          disabled={!value.trim()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-40"
+          onClick={openGlobalCapture}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-150 hover:border-[var(--accent)] group"
           style={{
-            background: "var(--accent)",
-            color: "#fff",
+            borderColor: "var(--border)",
+            background: "var(--surface)",
           }}
         >
-          <Plus size={14} strokeWidth={2.5} />
-          Capturar
+          <Zap
+            size={16}
+            strokeWidth={2}
+            className="shrink-0 transition-colors group-hover:text-[var(--accent)]"
+            style={{ color: "var(--text-subtle)" }}
+          />
+          <span
+            className="flex-1 text-left text-sm"
+            style={{ color: "var(--text-subtle)" }}
+          >
+            O que está na sua mente agora?
+          </span>
+          <kbd
+            className="hidden sm:inline-flex font-mono text-[10px] px-1.5 py-0.5 rounded"
+            style={{
+              background: "var(--bg)",
+              color: "var(--text-subtle)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            Ctrl+K
+          </kbd>
         </button>
       </div>
 
+      {/* Recent unprocessed captures */}
       {recentCaptures.length > 0 && (
         <div
           className="border-t px-4 py-3"
           style={{ borderColor: "var(--border)" }}
         >
-          <p
-            className="text-[10px] uppercase tracking-widest mb-2"
-            style={{ color: "var(--text-subtle)" }}
-          >
-            Últimas capturas salvas na Inbox
-          </p>
+          <div className="flex items-center justify-between mb-2">
+            <p
+              className="text-[10px] uppercase tracking-widest"
+              style={{ color: "var(--text-subtle)" }}
+            >
+              Pendentes na Inbox
+            </p>
+            <Link
+              href="/inbox"
+              className="flex items-center gap-1 text-[10px] font-medium transition-colors hover:opacity-80"
+              style={{ color: "var(--accent)" }}
+            >
+              Ver todas <ArrowRight size={10} />
+            </Link>
+          </div>
           <ul className="flex flex-col gap-1">
             {recentCaptures.map((item) => (
               <li
@@ -114,7 +115,9 @@ export function QuickCapture() {
                 style={{ color: "var(--text-muted)" }}
               >
                 <span>· {item.content}</span>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-[var(--surface)] text-[var(--text-subtle)]">
+                <span
+                  className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-[var(--surface)] text-[var(--text-subtle)]"
+                >
                   {item.type}
                 </span>
               </li>
