@@ -1,27 +1,34 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePersonaState } from "@/lib/storage";
+import { QUICK_CAPTURE_OPEN_EVENT } from "@/lib/ui-events";
 import {
-  Command,
-  X,
-  Zap,
-  Type,
+  ArrowRight,
+  Image,
   Link as LinkIcon,
   Mic,
-  Image,
-  ArrowRight,
+  Plus,
+  Type,
+  X,
+  Zap,
 } from "lucide-react";
 
 type CaptureType = "text" | "link" | "audio" | "image";
 
-const captureTypes: { type: CaptureType; icon: typeof Type; label: string }[] =
-  [
-    { type: "text", icon: Type, label: "Texto" },
-    { type: "link", icon: LinkIcon, label: "Link" },
-    { type: "audio", icon: Mic, label: "Áudio" },
-    { type: "image", icon: Image, label: "Imagem" },
-  ];
+type CaptureOption = {
+  type: CaptureType;
+  icon: typeof Type;
+  label: string;
+  enabled: boolean;
+};
+
+const captureTypes: CaptureOption[] = [
+  { type: "text", icon: Type, label: "Texto", enabled: true },
+  { type: "link", icon: LinkIcon, label: "Link", enabled: true },
+  { type: "audio", icon: Mic, label: "Áudio", enabled: false },
+  { type: "image", icon: Image, label: "Imagem", enabled: false },
+];
 
 export function GlobalQuickCapture() {
   const [open, setOpen] = useState(false);
@@ -31,15 +38,15 @@ export function GlobalQuickCapture() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { updateState, mounted } = usePersonaState();
 
-  // ── Ctrl+K / Cmd+K global shortcut ──
   const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setOpen((prev) => !prev);
+    (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setOpen((previous) => !previous);
       }
-      if (e.key === "Escape" && open) {
-        e.preventDefault();
+
+      if (event.key === "Escape" && open) {
+        event.preventDefault();
         setOpen(false);
       }
     },
@@ -47,61 +54,81 @@ export function GlobalQuickCapture() {
   );
 
   useEffect(() => {
+    const handleOpenRequest = () => setOpen(true);
+
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener(QUICK_CAPTURE_OPEN_EVENT, handleOpenRequest);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener(QUICK_CAPTURE_OPEN_EVENT, handleOpenRequest);
+    };
   }, [handleKeyDown]);
 
-  // ── Auto-focus the textarea when modal opens ──
   useEffect(() => {
     if (open) {
-      // Small delay so the animation starts first
-      const t = setTimeout(() => inputRef.current?.focus(), 80);
-      return () => clearTimeout(t);
-    } else {
-      // Reset state when closing
-      setValue("");
-      setSelected("text");
-      setJustCaptured(false);
+      const timeout = setTimeout(() => inputRef.current?.focus(), 80);
+      return () => clearTimeout(timeout);
     }
+
+    setValue("");
+    setSelected("text");
+    setJustCaptured(false);
   }, [open]);
 
   if (!mounted) return null;
 
   const handleCapture = () => {
-    if (!value.trim()) return;
+    const content = value.trim();
+    if (!content) return;
+
     const newItem = {
-      id: Date.now().toString(),
-      content: value.trim(),
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      content,
       type: selected,
       createdAt: new Date().toISOString(),
       processed: false,
     };
-    updateState((prev) => ({
-      ...prev,
-      inboxItems: [newItem, ...prev.inboxItems],
+
+    updateState((previous) => ({
+      ...previous,
+      inboxItems: [newItem, ...previous.inboxItems],
     }));
+
     setValue("");
     setJustCaptured(true);
-    setTimeout(() => {
-      setJustCaptured(false);
-    }, 1600);
-    // Re-focus for rapid sequential captures
+    setTimeout(() => setJustCaptured(false), 1600);
     inputRef.current?.focus();
   };
 
   const handleTextareaKeyDown = (
-    e: React.KeyboardEvent<HTMLTextAreaElement>
+    event: React.KeyboardEvent<HTMLTextAreaElement>
   ) => {
-    // Enter to capture (Shift+Enter for newline)
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
       handleCapture();
     }
   };
 
   return (
     <>
-      {/* ── Backdrop ── */}
+      {/* Mobile-first global trigger. Desktop users retain Ctrl/Cmd+K. */}
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="lg:hidden fixed right-4 bottom-4 z-[900] h-12 w-12 rounded-full flex items-center justify-center shadow-2xl transition-transform active:scale-95"
+          style={{
+            background: "var(--accent)",
+            color: "#fff",
+            boxShadow: "0 12px 32px rgba(0,0,0,0.45)",
+          }}
+          aria-label="Abrir Quick Capture"
+        >
+          <Plus size={21} strokeWidth={2.5} />
+        </button>
+      )}
+
       {open && (
         <div
           className="fixed inset-0 z-[998] transition-opacity duration-200"
@@ -110,10 +137,9 @@ export function GlobalQuickCapture() {
         />
       )}
 
-      {/* ── Modal ── */}
       {open && (
         <div
-          className="fixed inset-0 z-[999] flex items-start justify-center pt-[18vh]"
+          className="fixed inset-0 z-[999] flex items-start justify-center px-3 pt-[12vh] sm:pt-[18vh]"
           onClick={() => setOpen(false)}
         >
           <div
@@ -124,9 +150,11 @@ export function GlobalQuickCapture() {
               boxShadow:
                 "0 25px 60px rgba(0,0,0,0.50), 0 0 0 1px var(--border), inset 0 1px 0 rgba(255,255,255,0.04)",
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Quick Capture"
           >
-            {/* Header */}
             <div
               className="flex items-center justify-between px-5 py-3.5 border-b"
               style={{ borderColor: "var(--border)" }}
@@ -138,10 +166,7 @@ export function GlobalQuickCapture() {
                 >
                   <Zap size={13} strokeWidth={2.5} />
                 </div>
-                <span
-                  className="text-sm font-semibold"
-                  style={{ color: "var(--text)" }}
-                >
+                <span className="text-sm font-semibold" style={{ color: "var(--text)" }}>
                   Quick Capture
                 </span>
               </div>
@@ -157,28 +182,33 @@ export function GlobalQuickCapture() {
                   ESC
                 </kbd>
                 <button
+                  type="button"
                   onClick={() => setOpen(false)}
                   className="p-1 rounded-md transition-colors hover:opacity-80"
                   style={{ color: "var(--text-muted)" }}
+                  aria-label="Fechar Quick Capture"
                 >
                   <X size={16} />
                 </button>
               </div>
             </div>
 
-            {/* Capture Type Pills */}
             <div
-              className="flex items-center gap-1.5 px-5 py-3 border-b"
+              className="flex flex-wrap items-center gap-1.5 px-5 py-3 border-b"
               style={{ borderColor: "var(--border-subtle)" }}
             >
-              {captureTypes.map(({ type, icon: Icon, label }) => (
+              {captureTypes.map(({ type, icon: Icon, label, enabled }) => (
                 <button
+                  type="button"
                   key={type}
+                  disabled={!enabled}
+                  title={enabled ? label : `${label} — em breve`}
                   onClick={() => {
+                    if (!enabled) return;
                     setSelected(type);
                     inputRef.current?.focus();
                   }}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-35"
                   style={
                     selected === type
                       ? {
@@ -194,70 +224,58 @@ export function GlobalQuickCapture() {
                 >
                   <Icon size={12} />
                   <span className="hidden sm:inline">{label}</span>
+                  {!enabled && (
+                    <span className="hidden md:inline text-[9px] uppercase tracking-wide">
+                      em breve
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
 
-            {/* Input Area */}
             <div className="px-5 py-4">
               <textarea
                 ref={inputRef}
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
+                onChange={(event) => setValue(event.target.value)}
                 onKeyDown={handleTextareaKeyDown}
-                placeholder="O que está na sua mente agora?"
+                placeholder={
+                  selected === "link"
+                    ? "Cole um link ou escreva por que ele importa..."
+                    : "O que está na sua mente agora?"
+                }
                 rows={3}
                 className="w-full bg-transparent text-sm outline-none resize-none placeholder:text-[var(--text-subtle)] leading-relaxed"
                 style={{ color: "var(--text)" }}
               />
             </div>
 
-            {/* Footer */}
             <div
-              className="flex items-center justify-between px-5 py-3 border-t"
+              className="flex items-center justify-between gap-3 px-5 py-3 border-t"
               style={{ borderColor: "var(--border)" }}
             >
-              <div className="flex items-center gap-2">
-                {justCaptured && (
+              <div className="min-w-0">
+                {justCaptured ? (
                   <span
                     className="text-xs font-medium animate-fade-in"
                     style={{ color: "var(--green)" }}
                   >
                     ✓ Enviado para a Inbox
                   </span>
-                )}
-                {!justCaptured && (
+                ) : (
                   <span
-                    className="text-[11px]"
+                    className="hidden sm:inline text-[11px]"
                     style={{ color: "var(--text-subtle)" }}
                   >
-                    <kbd
-                      className="font-mono px-1 py-0.5 rounded text-[10px]"
-                      style={{
-                        background: "var(--surface)",
-                        border: "1px solid var(--border)",
-                      }}
-                    >
-                      Enter
-                    </kbd>{" "}
-                    para capturar ·{" "}
-                    <kbd
-                      className="font-mono px-1 py-0.5 rounded text-[10px]"
-                      style={{
-                        background: "var(--surface)",
-                        border: "1px solid var(--border)",
-                      }}
-                    >
-                      Shift+Enter
-                    </kbd>{" "}
-                    nova linha
+                    Enter para capturar · Shift+Enter nova linha
                   </span>
                 )}
               </div>
               <button
+                type="button"
                 onClick={handleCapture}
                 disabled={!value.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-150 disabled:opacity-30"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-150 disabled:opacity-30 shrink-0"
                 style={{
                   background: value.trim() ? "var(--accent)" : "var(--surface)",
                   color: value.trim() ? "#fff" : "var(--text-muted)",
