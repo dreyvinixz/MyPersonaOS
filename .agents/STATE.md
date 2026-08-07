@@ -128,15 +128,16 @@ Priority order:
 
 ## Current Git workflow
 
-Bootstrap work is being developed on:
+Active feature development is on:
 
-`agent/bootstrap-v0.1`
+`agent/quick-capture-inbox`
 
 against:
 
 `main`
 
-A draft PR exists for the bootstrap. Agents must inspect the repository/PR before assuming this is still current.
+(The initial bootstrap branch `agent/bootstrap-v0.1` has been merged into `main`).
+
 
 ## Known validation constraint
 

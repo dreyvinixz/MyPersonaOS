@@ -12,10 +12,12 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePersonaState } from "@/lib/storage";
+import { openQuickCapture } from "@/lib/ui-events";
 
 const nav = [
   { href: "/", label: "Today", icon: Home },
-  { href: "/inbox", label: "Inbox", icon: Inbox },
+  { href: "/inbox", label: "Inbox", icon: Inbox, badge: true },
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/projects", label: "Projects", icon: Folder },
   { href: "/content", label: "Content", icon: Video },
@@ -24,23 +26,27 @@ const nav = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { state, mounted } = usePersonaState();
+
+  const inboxCount = mounted
+    ? state.inboxItems.filter((item) => !item.processed).length
+    : 0;
 
   return (
     <aside
-      className="flex flex-col w-[60px] lg:w-[220px] h-screen border-r shrink-0 transition-all duration-300 select-none"
+      className="flex flex-col w-[60px] lg:w-[220px] h-screen border-r shrink-0 transition-all duration-300 select-none backdrop-blur-2xl"
       style={{
         background: "var(--surface)",
         borderColor: "var(--border)",
       }}
     >
-      {/* Logo */}
       <div
         className="flex items-center gap-3 px-4 py-5 border-b"
         style={{ borderColor: "var(--border)" }}
       >
         <div
-          className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 shadow-sm"
-          style={{ background: "var(--accent)", color: "#fff" }}
+          className="oil-logo flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
+          style={{ color: "#fff" }}
         >
           <Zap size={16} strokeWidth={2.5} />
         </div>
@@ -52,39 +58,76 @@ export function Sidebar() {
         </span>
       </div>
 
-      {/* Nav */}
+      <div className="px-2 pt-3 pb-1 hidden lg:block">
+        <button
+          type="button"
+          onClick={openQuickCapture}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all duration-150 hover:bg-[var(--card-hover)]"
+          style={{
+            color: "var(--text-subtle)",
+            border: "1px solid var(--border-subtle)",
+            background: "rgba(255,255,255,0.015)",
+          }}
+        >
+          <Zap size={12} style={{ color: "var(--cyan)" }} />
+          <span className="flex-1 text-left">Quick Capture</span>
+          <kbd
+            className="font-mono text-[10px] px-1.5 py-0.5 rounded"
+            style={{
+              background: "rgba(5,6,10,0.72)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            Ctrl/⌘ K
+          </kbd>
+        </button>
+      </div>
+
       <nav className="flex flex-col gap-1 p-2 flex-1 mt-1">
-        {nav.map(({ href, label, icon: Icon }) => {
+        {nav.map(({ href, label, icon: Icon, badge }) => {
           const active = pathname === href;
+          const showBadge = badge && inboxCount > 0;
+
           return (
             <Link
               key={href}
               href={href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
-                active ? "text-white" : "hover:opacity-80"
+                active ? "text-white" : "hover:opacity-90"
               )}
               style={
                 active
                   ? {
                       background: "var(--accent-dim)",
                       color: "var(--accent-hover)",
+                      boxShadow: "inset 0 0 0 1px rgba(196,181,253,0.08)",
                     }
                   : {
                       color: "var(--text-muted)",
                     }
               }
             >
-              <Icon
-                size={18}
-                strokeWidth={active ? 2.5 : 1.8}
-                className="shrink-0"
-              />
+              <div className="relative shrink-0">
+                <Icon size={18} strokeWidth={active ? 2.5 : 1.8} />
+                {showBadge && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+                    style={{
+                      background: "var(--magenta)",
+                      color: "#fff",
+                      boxShadow: "0 0 14px rgba(236,72,153,0.3)",
+                    }}
+                  >
+                    {inboxCount > 9 ? "9+" : inboxCount}
+                  </span>
+                )}
+              </div>
               <span className="hidden lg:block">{label}</span>
               {active && (
                 <span
                   className="hidden lg:block ml-auto w-1.5 h-1.5 rounded-full"
-                  style={{ background: "var(--accent)" }}
+                  style={{ background: "var(--cyan)" }}
                 />
               )}
             </Link>
@@ -92,15 +135,11 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
       <div
         className="p-4 border-t hidden lg:block"
         style={{ borderColor: "var(--border)" }}
       >
-        <p
-          className="text-[10px] font-mono tracking-wider"
-          style={{ color: "var(--text-subtle)" }}
-        >
+        <p className="text-[10px] font-mono tracking-wider oil-gradient-text">
           why not today?
         </p>
       </div>
