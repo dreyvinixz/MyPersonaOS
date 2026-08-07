@@ -19,6 +19,11 @@ import type { InboxItem } from "@/types";
 type FilterMode = "all" | "unprocessed" | "processed";
 type ConvertTarget = "task" | "project";
 
+function createUuid(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  throw new Error("This browser does not support crypto.randomUUID().");
+}
+
 export default function InboxPage() {
   const { state, updateState, mounted } = usePersonaState();
   const [filter, setFilter] = useState<FilterMode>("all");
@@ -31,8 +36,12 @@ export default function InboxPage() {
 
   if (!mounted) return null;
 
-  const isUnprocessed = (item: InboxItem) => item.status === "pending" || (!item.status && !item.processed);
-  const isProcessed = (item: InboxItem) => item.status === "archived" || item.status === "converted" || (item.processed && !item.status);
+  const isUnprocessed = (item: InboxItem) =>
+    item.status === "pending" || (!item.status && !item.processed);
+  const isProcessed = (item: InboxItem) =>
+    item.status === "archived" ||
+    item.status === "converted" ||
+    (item.processed && !item.status);
 
   const filtered = state.inboxItems.filter((item) => {
     if (filter === "unprocessed") return isUnprocessed(item);
@@ -47,16 +56,16 @@ export default function InboxPage() {
     const iso = new Date().toISOString();
     updateState((previous) => ({
       ...previous,
-      inboxItems: previous.inboxItems.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              status: isProcessed(item) ? "pending" : "archived",
-              processedAt: isProcessed(item) ? undefined : iso,
-              updatedAt: iso,
-            }
-          : item
-      ),
+      inboxItems: previous.inboxItems.map((item) => {
+        if (item.id !== id || item.status === "converted") return item;
+        const archive = item.status !== "archived";
+        return {
+          ...item,
+          status: archive ? "archived" : "pending",
+          processedAt: archive ? iso : undefined,
+          updatedAt: iso,
+        };
+      }),
     }));
   };
 
@@ -103,6 +112,7 @@ export default function InboxPage() {
   };
 
   const openConvert = (item: InboxItem, target: ConvertTarget) => {
+    if (item.status !== "pending") return;
     setConvertingItem({ item, target });
     setConvertTitle(item.content);
     setActiveMenu(null);
@@ -119,7 +129,7 @@ export default function InboxPage() {
     const title = convertTitle.trim();
     const { item, target } = convertingItem;
     const now = new Date().toISOString();
-    const targetId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}`;
+    const targetId = createUuid();
 
     if (target === "task") {
       updateState((previous) => ({
@@ -156,10 +166,7 @@ export default function InboxPage() {
           {
             id: targetId,
             name: title,
-            description: `Originado da Inbox: "${item.content.substring(
-              0,
-              80
-            )}"`,
+            description: `Originado da Inbox: "${item.content.substring(0, 80)}"`,
             progress: 0,
             tasks: [],
             createdAt: now,
@@ -250,7 +257,10 @@ export default function InboxPage() {
           </button>
         </div>
 
-        <p className="mt-2 text-base font-normal" style={{ color: "var(--text-muted)" }}>
+        <p
+          className="mt-2 text-base font-normal"
+          style={{ color: "var(--text-muted)" }}
+        >
           Capture primeiro. Organize depois.
         </p>
       </div>
@@ -309,8 +319,8 @@ export default function InboxPage() {
                     {filter === "all"
                       ? "Sua Inbox está limpa!"
                       : filter === "unprocessed"
-                      ? "Nenhum item pendente."
-                      : "Nenhum item processado."}
+                        ? "Nenhum item pendente."
+                        : "Nenhum item processado."}
                   </p>
                   <button
                     type="button"
@@ -326,24 +336,27 @@ export default function InboxPage() {
           ) : (
             filtered.map((item) => {
               const processed = isProcessed(item);
+              const converted = item.status === "converted";
               return (
                 <li
                   key={item.id}
                   className="group p-4 flex items-start justify-between gap-3 transition-colors relative"
-                  style={{
-                    background: processed ? "transparent" : "var(--card)",
-                  }}
+                  style={{ background: processed ? "transparent" : "var(--card)" }}
                 >
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <button
                       type="button"
                       onClick={() => handleMarkProcessed(item.id)}
-                      className="mt-0.5 shrink-0 transition-colors"
+                      disabled={converted}
+                      className="mt-0.5 shrink-0 transition-colors disabled:cursor-default"
                       aria-label={
-                        processed
-                          ? "Marcar como pendente"
-                          : "Marcar como processado"
+                        converted
+                          ? "Item convertido"
+                          : item.status === "archived"
+                            ? "Marcar como pendente"
+                            : "Arquivar item"
                       }
+                      title={converted ? "Itens convertidos mantêm sua linhagem" : undefined}
                     >
                       <CheckCircle2
                         size={20}
@@ -369,7 +382,7 @@ export default function InboxPage() {
                         >
                           {formatDate(item.createdAt)}
                         </span>
-                        {item.status === "converted" && item.convertedToType && (
+                        {converted && item.convertedToType && (
                           <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[var(--accent-dim)] text-[var(--accent-hover)] border border-[rgba(155,135,245,0.25)]">
                             → {item.convertedToType}
                           </span>
@@ -415,52 +428,52 @@ export default function InboxPage() {
                           }}
                         >
                           {!processed && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => openConvert(item, "task")}
-                              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
-                              style={{ color: "var(--text)" }}
-                            >
-                              <ListTodo size={14} style={{ color: "var(--accent)" }} />
-                              Converter em Tarefa
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => openConvert(item, "project")}
-                              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
-                              style={{ color: "var(--text)" }}
-                            >
-                              <FolderPlus size={14} style={{ color: "var(--green)" }} />
-                              Converter em Projeto
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleArchive(item.id)}
-                              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
-                              style={{ color: "var(--text)" }}
-                            >
-                              <Archive size={14} style={{ color: "var(--amber)" }} />
-                              Arquivar
-                            </button>
-                          </>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(item.id)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
-                          style={{ color: "var(--red)" }}
-                        >
-                          <Trash2 size={14} />
-                          Excluir
-                        </button>
-                      </div>
-                    )}
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => openConvert(item, "task")}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
+                                style={{ color: "var(--text)" }}
+                              >
+                                <ListTodo size={14} style={{ color: "var(--accent)" }} />
+                                Converter em Tarefa
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openConvert(item, "project")}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
+                                style={{ color: "var(--text)" }}
+                              >
+                                <FolderPlus size={14} style={{ color: "var(--green)" }} />
+                                Converter em Projeto
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleArchive(item.id)}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
+                                style={{ color: "var(--text)" }}
+                              >
+                                <Archive size={14} style={{ color: "var(--amber)" }} />
+                                Arquivar
+                              </button>
+                            </>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(item.id)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
+                            style={{ color: "var(--red)" }}
+                          >
+                            <Trash2 size={14} />
+                            Excluir
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </li>
-            );
-          })
+                </li>
+              );
+            })
           )}
         </ul>
       </div>
