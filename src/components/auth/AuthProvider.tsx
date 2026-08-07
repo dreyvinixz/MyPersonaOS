@@ -7,6 +7,7 @@ import {
   useState,
   useCallback,
 } from "react";
+import { useRouter } from "next/navigation";
 import type { User, Session } from "@supabase/supabase-js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -31,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const isCloudMode = isSupabaseConfigured();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isCloudMode) {
@@ -40,7 +42,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const supabase = createClient();
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) console.error("Failed to restore auth session:", error);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -48,9 +51,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
       setLoading(false);
     });
 
@@ -59,9 +62,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     if (!isCloudMode) return;
+
+    // Hide authenticated data immediately; the offline cache remains on disk
+    // for the same private owner but is no longer rendered after navigation.
+    setSession(null);
+    setUser(null);
+
     const supabase = createClient();
-    await supabase.auth.signOut();
-  }, [isCloudMode]);
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error("Supabase sign-out failed:", error);
+
+    router.replace("/login");
+    router.refresh();
+  }, [isCloudMode, router]);
 
   return (
     <AuthContext.Provider
