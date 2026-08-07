@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { ClientShell } from "@/components/layout/ClientShell";
 
 export const metadata: Metadata = {
   title: "MyPersonaOS — Personal Life Operating System",
@@ -27,14 +28,17 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
-        <div
-          className="flex h-screen overflow-hidden"
-          style={{ background: "var(--bg)" }}
-        >
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto">{children}</main>
-        </div>
+        <ClientShell>
+          <div
+            className="flex h-screen overflow-hidden"
+            style={{ background: "var(--bg)" }}
+          >
+            <Sidebar />
+            <main className="flex-1 overflow-y-auto">{children}</main>
+          </div>
+        </ClientShell>
       </body>
     </html>
   );
 }
+
