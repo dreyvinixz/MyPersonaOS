@@ -45,13 +45,16 @@ export function normalizeLegacySnapshot(state: PersonaState): PersonaState {
       ...task,
       id: taskIds.get(task.id)!,
       projectId: task.projectId
-        ? projectIds.get(task.projectId) || (UUID_RE.test(task.projectId) ? task.projectId : undefined)
+        ? projectIds.get(task.projectId) ||
+          (UUID_RE.test(task.projectId) ? task.projectId : undefined)
         : undefined,
     })),
     inboxItems: state.inboxItems.map((item) => {
       let convertedToId = item.convertedToId;
       if (convertedToId && item.convertedToType === "task") {
-        convertedToId = taskIds.get(convertedToId) || (UUID_RE.test(convertedToId) ? convertedToId : undefined);
+        convertedToId =
+          taskIds.get(convertedToId) ||
+          (UUID_RE.test(convertedToId) ? convertedToId : undefined);
       }
       if (convertedToId && item.convertedToType === "project") {
         convertedToId =
@@ -98,6 +101,9 @@ export async function runLocalToCloudMigration(
       reason: "already_migrated",
     };
   }
+
+  // Keep a recoverable browser-side snapshot before the first cloud migration.
+  localRepository.createBackup("pre-v0.2-cloud-migration");
 
   const localSnapshot = localRepository.getState();
   const normalizedSnapshot = normalizeLegacySnapshot(localSnapshot);
