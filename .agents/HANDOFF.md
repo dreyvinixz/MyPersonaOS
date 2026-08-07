@@ -6,35 +6,32 @@ Do not overwrite durable project history with vague notes. A useful handoff shou
 
 ---
 
-## Current Handoff — CI Watch Script Integration (`scripts/ci_watch.py`)
+## Current Handoff — Transition to `agent/quick-capture-inbox` Feature Branch
 
 ### Mission
 
-Integrate `ci_watch.py` from `quantbase-backend` into MyPersonaOS to monitor GitHub Actions CI runs, download logs, and parse error events locally.
+Conclude initial repository bootstrap merge, add `requirements.txt` for Python dependencies, and switch active development to feature branch `agent/quick-capture-inbox`.
 
 ### Status
 
-`DONE`
+`IN_PROGRESS`
 
 ### What changed
 
-- Created [scripts/ci_watch.py](file:///d:/MyPersonaOS/scripts/ci_watch.py):
-  - Configured default repository `dreyvinixz/MyPersonaOS`.
-  - Added environment auto-loading (`.env.local`, `.env.dev`, `.env`).
-  - Added ANSI escape code & timestamp stripping.
-  - Added error extraction engines for `CRITICAL`, `ERROR`, `WARNING`, and Python tracebacks with context windows.
-  - Added local log exporter writing `summary.txt`, `errors.txt`, `jobs/`, and `failed_steps/` into `ci_logs/`.
-- Updated [package.json](file:///d:/MyPersonaOS/package.json) with command `"ci:watch": "python scripts/ci_watch.py"`.
-- Updated [.gitignore](file:///d:/MyPersonaOS/.gitignore) to exclude `/ci_logs`.
+- Created [requirements.txt](file:///d:/MyPersonaOS/requirements.txt) declaring `requests>=2.31.0` for `scripts/ci_watch.py` portability.
+- Merged `agent/bootstrap-v0.1` into `main` and pushed tag `v0.1.0`.
+- Created and checked out new feature branch `agent/quick-capture-inbox`.
 - Updated [.agents/STATE.md](file:///d:/MyPersonaOS/.agents/STATE.md).
 
 ### Files touched
 
-- `scripts/ci_watch.py`
-- `package.json`
-- `.gitignore`
+- `requirements.txt`
 - `.agents/STATE.md`
+- `.agents/HANDOFF.md`
 
 ### Next best action
 
-Proceed with V0.2 milestone: Supabase integration, PostgreSQL schema, RLS policies, and private single-user authentication.
+Begin first core product slice on `agent/quick-capture-inbox`:
+1. Enhance Quick Capture UI & global shortcuts.
+2. Refine Inbox processing & item conversion into Today tasks / Projects.
+3. Prepare Supabase client setup for Phase 2 cloud sync.
