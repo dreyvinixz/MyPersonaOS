@@ -26,19 +26,20 @@ export function QuickCapture() {
         className="flex items-center justify-between px-5 py-4 border-b"
         style={{ borderColor: "var(--border)" }}
       >
-        <h2 className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+        <h2 className="text-base font-bold" style={{ color: "var(--text)" }}>
           Quick Capture
         </h2>
         {unprocessedCount > 0 && (
           <Link
             href="/inbox"
-            className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors hover:opacity-80"
+            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors hover:opacity-80 font-mono"
             style={{
               background: "var(--accent-dim)",
-              color: "var(--accent)",
+              color: "var(--accent-hover)",
+              border: "1px solid rgba(155,135,245,0.25)",
             }}
           >
-            <InboxIcon size={10} />
+            <InboxIcon size={12} />
             {unprocessedCount} na inbox
           </Link>
         )}
@@ -48,28 +49,28 @@ export function QuickCapture() {
         <button
           type="button"
           onClick={openQuickCapture}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-150 hover:border-[var(--accent)] group"
+          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-lg border transition-all duration-150 hover:border-[var(--accent)] group"
           style={{
             borderColor: "var(--border)",
-            background: "var(--surface)",
+            background: "rgba(255,255,255,0.02)",
           }}
         >
           <Zap
-            size={16}
+            size={18}
             strokeWidth={2}
-            className="shrink-0 transition-colors group-hover:text-[var(--accent)]"
-            style={{ color: "var(--text-subtle)" }}
+            className="shrink-0 transition-colors group-hover:text-[var(--cyan)]"
+            style={{ color: "var(--cyan)" }}
           />
           <span
-            className="flex-1 text-left text-sm"
-            style={{ color: "var(--text-subtle)" }}
+            className="flex-1 text-left text-sm font-medium"
+            style={{ color: "var(--text-muted)" }}
           >
             O que está na sua mente agora?
           </span>
           <kbd
-            className="hidden sm:inline-flex font-mono text-[10px] px-1.5 py-0.5 rounded"
+            className="hidden sm:inline-flex font-mono text-xs font-semibold px-2 py-0.5 rounded"
             style={{
-              background: "var(--bg)",
+              background: "var(--surface)",
               color: "var(--text-subtle)",
               border: "1px solid var(--border)",
             }}
@@ -81,37 +82,38 @@ export function QuickCapture() {
 
       {recentCaptures.length > 0 && (
         <div
-          className="border-t px-4 py-3"
+          className="border-t px-5 py-3.5"
           style={{ borderColor: "var(--border)" }}
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2.5">
             <p
-              className="text-[10px] uppercase tracking-widest"
+              className="text-xs uppercase font-mono tracking-wider font-semibold"
               style={{ color: "var(--text-subtle)" }}
             >
               Pendentes na Inbox
             </p>
             <Link
               href="/inbox"
-              className="flex items-center gap-1 text-[10px] font-medium transition-colors hover:opacity-80"
-              style={{ color: "var(--accent)" }}
+              className="flex items-center gap-1 text-xs font-semibold transition-colors hover:opacity-80"
+              style={{ color: "var(--accent-hover)" }}
             >
-              Ver todas <ArrowRight size={10} />
+              Ver todas <ArrowRight size={12} />
             </Link>
           </div>
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-1.5">
             {recentCaptures.map((item) => (
               <li
                 key={item.id}
-                className="text-xs truncate flex items-center justify-between gap-2"
+                className="text-sm font-medium truncate flex items-center justify-between gap-2"
                 style={{ color: "var(--text-muted)" }}
               >
                 <span className="truncate">· {item.content}</span>
                 <span
-                  className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded shrink-0"
+                  className="text-xs uppercase font-mono font-semibold px-2 py-0.5 rounded border shrink-0"
                   style={{
                     background: "var(--surface)",
                     color: "var(--text-subtle)",
+                    borderColor: "var(--border-subtle)",
                   }}
                 >
                   {item.type}

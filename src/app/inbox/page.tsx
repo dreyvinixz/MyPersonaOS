@@ -179,7 +179,7 @@ export default function InboxPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 lg:pb-8">
       <div className="mb-8">
         <p
-          className="text-[10px] uppercase tracking-[0.25em] font-semibold mb-2"
+          className="text-xs uppercase font-mono tracking-[0.2em] font-semibold mb-2"
           style={{ color: "var(--text-subtle)" }}
         >
           Entrada Rápida
@@ -187,19 +187,20 @@ export default function InboxPage() {
 
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <Inbox size={28} style={{ color: "var(--accent)" }} />
+            <Inbox size={32} style={{ color: "var(--accent)" }} />
             <h1
-              className="text-3xl font-bold tracking-tight"
+              className="text-3xl sm:text-4xl font-extrabold tracking-tight"
               style={{ color: "var(--text)" }}
             >
               Inbox
             </h1>
             {unprocessedCount > 0 && (
               <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                className="text-xs font-semibold px-2.5 py-1 rounded-full font-mono"
                 style={{
                   background: "var(--accent-dim)",
-                  color: "var(--accent)",
+                  color: "var(--accent-hover)",
+                  border: "1px solid rgba(155,135,245,0.25)",
                 }}
               >
                 {unprocessedCount}
@@ -210,46 +211,50 @@ export default function InboxPage() {
           <button
             type="button"
             onClick={openQuickCapture}
-            className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg border transition-colors hover:bg-[var(--card-hover)]"
+            className="hidden sm:flex items-center gap-2 text-xs font-medium px-3.5 py-2 rounded-lg border transition-all hover:bg-[var(--card-hover)]"
             style={{
               color: "var(--text-muted)",
               borderColor: "var(--border)",
+              background: "rgba(255,255,255,0.02)",
             }}
           >
-            <Zap size={12} />
+            <Zap size={14} style={{ color: "var(--cyan)" }} />
             Capturar
-            <kbd className="font-mono text-[9px] opacity-60">Ctrl/⌘ K</kbd>
+            <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-[var(--surface)] text-[var(--text-subtle)] border border-[var(--border-subtle)]">
+              Ctrl/⌘ K
+            </kbd>
           </button>
         </div>
 
-        <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-2 text-base font-normal" style={{ color: "var(--text-muted)" }}>
           Capture primeiro. Organize depois.
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-4 px-1">
-        <div className="flex flex-wrap items-center gap-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-5 px-1">
+        <div className="flex flex-wrap items-center gap-1.5">
           {filters.map(({ mode, label, count }) => (
             <button
               type="button"
               key={mode}
               onClick={() => setFilter(mode)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150"
               style={
                 filter === mode
                   ? {
                       background: "var(--accent-dim)",
-                      color: "var(--accent)",
+                      color: "var(--accent-hover)",
                       border: "1px solid var(--accent)",
                     }
                   : {
                       color: "var(--text-muted)",
                       border: "1px solid transparent",
+                      background: "rgba(255,255,255,0.01)",
                     }
               }
             >
               {label}
-              <span className="text-[10px] font-mono opacity-70">{count}</span>
+              <span className="text-xs font-mono font-bold opacity-80">{count}</span>
             </button>
           ))}
         </div>
@@ -258,7 +263,7 @@ export default function InboxPage() {
           <button
             type="button"
             onClick={handleClearProcessed}
-            className="text-[11px] font-medium px-2.5 py-1.5 rounded-md transition-colors"
+            className="text-xs font-semibold px-3 py-1.5 rounded-md transition-colors"
             style={{ color: "var(--red)", background: "var(--red-dim)" }}
           >
             Limpar processados
@@ -324,15 +329,15 @@ export default function InboxPage() {
 
                   <div className="flex-1 min-w-0">
                     <p
-                      className={`text-sm leading-relaxed break-words ${
-                        item.processed ? "line-through opacity-40" : ""
+                      className={`text-base font-medium leading-relaxed break-words ${
+                        item.processed ? "line-through opacity-45" : ""
                       }`}
                       style={{ color: "var(--text)" }}
                     >
                       {item.content}
                     </p>
                     <p
-                      className="text-[10px] mt-1"
+                      className="text-xs font-mono font-medium mt-1.5"
                       style={{ color: "var(--text-subtle)" }}
                     >
                       {formatDate(item.createdAt)}
@@ -340,12 +345,13 @@ export default function InboxPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   <span
-                    className="hidden sm:inline text-[10px] uppercase font-mono px-2 py-0.5 rounded"
+                    className="hidden sm:inline text-xs uppercase font-mono font-semibold px-2.5 py-1 rounded border"
                     style={{
-                      background: "var(--surface)",
-                      color: "var(--text-subtle)",
+                      background: "rgba(255,255,255,0.03)",
+                      color: "var(--text-muted)",
+                      borderColor: "var(--border-subtle)",
                     }}
                   >
                     {item.type}
