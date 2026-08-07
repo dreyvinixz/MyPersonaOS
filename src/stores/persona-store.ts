@@ -70,12 +70,34 @@ export function usePersonaStore() {
         // If in Cloud Mode and authenticated, push mutations asynchronously
         if (isCloudMode && user) {
           setSyncStatus("syncing");
-          // Background sync
-          Promise.all(
-            next.inboxItems.map((item) =>
-              supabaseRepository.upsertInboxItem(user.id, item)
-            )
-          )
+          
+          const syncOps: Promise<void>[] = [];
+
+          if (prev.mainFocus !== next.mainFocus) {
+            syncOps.push(supabaseRepository.saveMainFocus(user.id, next.mainFocus));
+          }
+
+          next.inboxItems.forEach((item) => {
+            syncOps.push(supabaseRepository.upsertInboxItem(user.id, item));
+          });
+
+          next.tasks.forEach((task) => {
+            syncOps.push(supabaseRepository.upsertTask(user.id, task));
+          });
+
+          next.projects.forEach((project) => {
+            syncOps.push(supabaseRepository.upsertProject(user.id, project));
+          });
+
+          next.contentPieces.forEach((content) => {
+            syncOps.push(supabaseRepository.upsertContentPiece(user.id, content));
+          });
+
+          next.englishWords.forEach((word) => {
+            syncOps.push(supabaseRepository.upsertEnglishWord(user.id, word));
+          });
+
+          Promise.all(syncOps)
             .then(() => setSyncStatus("synced"))
             .catch((err) => {
               console.error("Cloud sync mutation error:", err);

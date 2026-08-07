@@ -51,7 +51,7 @@ export class SupabaseRepository {
         .from("user_profiles")
         .select("settings")
         .eq("id", userId)
-        .single(),
+        .maybeSingle(),
     ]);
 
     const tasks: Task[] = (tasksRes.data || []).map((t) => ({
@@ -73,7 +73,7 @@ export class SupabaseRepository {
       description: p.description,
       progress: p.progress,
       deadline: p.deadline,
-      tasks: [],
+      tasks: tasks.filter((t) => t.projectId === p.id),
       createdAt: p.created_at,
       updatedAt: p.updated_at,
     }));
@@ -112,7 +112,7 @@ export class SupabaseRepository {
     }));
 
     const mainFocus =
-      (profileRes.data?.settings as Record<string, unknown>)?.mainFocus as string ||
+      ((profileRes.data?.settings as Record<string, unknown>)?.mainFocus as string) ||
       "Finish CodeToday video #01";
 
     return {
@@ -123,6 +123,25 @@ export class SupabaseRepository {
       inboxItems,
       englishWords,
     };
+  }
+
+  async saveMainFocus(userId: string, mainFocus: string): Promise<void> {
+    const { data: profile } = await this.supabase
+      .from("user_profiles")
+      .select("settings")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const settings = {
+      ...((profile?.settings as Record<string, unknown>) || {}),
+      mainFocus,
+    };
+
+    await this.supabase.from("user_profiles").upsert({
+      id: userId,
+      settings,
+      updated_at: new Date().toISOString(),
+    });
   }
 
   async upsertInboxItem(userId: string, item: InboxItem): Promise<void> {
@@ -188,6 +207,49 @@ export class SupabaseRepository {
   async deleteProject(userId: string, id: string): Promise<void> {
     await this.supabase
       .from("projects")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId);
+  }
+
+  async upsertContentPiece(userId: string, content: ContentPiece): Promise<void> {
+    await this.supabase.from("content_pieces").upsert({
+      id: content.id,
+      user_id: userId,
+      brand: content.brand,
+      title: content.title,
+      stage: content.stage,
+      notes: content.notes,
+      created_at: content.createdAt,
+      updated_at: content.updatedAt,
+    });
+  }
+
+  async deleteContentPiece(userId: string, id: string): Promise<void> {
+    await this.supabase
+      .from("content_pieces")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId);
+  }
+
+  async upsertEnglishWord(userId: string, word: EnglishWord): Promise<void> {
+    await this.supabase.from("english_words").upsert({
+      id: word.id,
+      user_id: userId,
+      term: word.term,
+      definition: word.definition,
+      example: word.example,
+      mastery_level: word.masteryLevel,
+      last_reviewed_at: word.lastReviewedAt,
+      created_at: word.createdAt,
+      updated_at: word.updatedAt,
+    });
+  }
+
+  async deleteEnglishWord(userId: string, id: string): Promise<void> {
+    await this.supabase
+      .from("english_words")
       .delete()
       .eq("id", id)
       .eq("user_id", userId);
