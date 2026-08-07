@@ -5,6 +5,7 @@ These assets belong to the MyPersonaOS visual system and are stored locally so t
 ## Included
 
 - `oil-slick-mesh.svg` — full-page dark iridescent background.
+- `oil-contours.svg` — transparent contour-line background for banners and special surfaces.
 - `oil-orb.svg` — decorative Today/dashboard orb.
 - `empty-flow.svg` — abstract empty-state illustration.
 
