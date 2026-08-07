@@ -35,6 +35,10 @@ type PersonaStoreValue = {
 
 const PersonaStoreContext = createContext<PersonaStoreValue | null>(null);
 
+function statesDiffer(left: PersonaState, right: PersonaState): boolean {
+  return JSON.stringify(left) !== JSON.stringify(right);
+}
+
 export function PersonaProvider({ children }: { children: React.ReactNode }) {
   const { user, isCloudMode, loading: authLoading } = useAuth();
   const initialStateRef = useRef<PersonaState>(localRepository.getState());
@@ -52,6 +56,13 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
     setState(next);
     localRepository.saveState(next);
   }, []);
+
+  const normalizeLiveStateForCloud = useCallback(() => {
+    const current = stateRef.current;
+    const normalized = normalizeLegacySnapshot(current);
+    if (statesDiffer(current, normalized)) commitState(normalized);
+    return normalized;
+  }, [commitState]);
 
   const flushQueuedMutations = useCallback(async (userId: string) => {
     if (typeof navigator !== "undefined" && !navigator.onLine) {
@@ -98,21 +109,18 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
   const initializeCloud = useCallback(
     async (userId: string) => {
+      cloudReadyRef.current = false;
+
+      // Normalize even while offline, so every subsequent local mutation already
+      // carries cloud-compatible UUIDs and can safely wait in the outbox.
+      normalizeLiveStateForCloud();
+
       if (typeof navigator !== "undefined" && !navigator.onLine) {
         setSyncStatus("offline");
         return;
       }
 
-      cloudReadyRef.current = false;
       setSyncStatus("syncing");
-
-      // Move the live in-memory state to UUIDs before the RPC starts. This closes
-      // the migration race where a user action could otherwise queue a legacy ID
-      // while V0.1 data was being converted in localStorage.
-      const normalizedLocal = normalizeLegacySnapshot(stateRef.current);
-      if (JSON.stringify(normalizedLocal) !== JSON.stringify(stateRef.current)) {
-        commitState(normalizedLocal);
-      }
 
       // Migration throws on failure. We intentionally do not fetch cloud state
       // after a failed migration, so local data can never be replaced by an
@@ -129,7 +137,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
       cloudReadyRef.current = true;
       setSyncStatus("synced");
     },
-    [commitState, flushQueuedMutations]
+    [commitState, flushQueuedMutations, normalizeLiveStateForCloud]
   );
 
   useEffect(() => {
@@ -222,9 +230,17 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
   const updateState = useCallback(
     (updater: (previous: PersonaState) => PersonaState) => {
-      const previous = stateRef.current;
-      const next = updater(previous);
+      const rawPrevious = stateRef.current;
+      const previous =
+        isCloudMode && user && !cloudReadyRef.current
+          ? normalizeLegacySnapshot(rawPrevious)
+          : rawPrevious;
 
+      if (previous !== rawPrevious && statesDiffer(previous, rawPrevious)) {
+        commitState(previous);
+      }
+
+      const next = updater(previous);
       commitState(next);
 
       if (!isCloudMode || !user) return;
