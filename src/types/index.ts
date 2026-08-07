@@ -69,6 +69,9 @@ export interface InboxItem {
   createdAt: string;
   processedAt?: string;
   updatedAt: string;
+
+  /** @deprecated Read only for V0.1 localStorage compatibility; new code uses status. */
+  processed?: boolean;
 }
 
 export interface EnglishWord {
