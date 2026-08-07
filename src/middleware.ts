@@ -1,18 +1,35 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+function redirectPreservingCookies(
+  url: URL,
+  sourceResponse: NextResponse
+): NextResponse {
+  const response = NextResponse.redirect(url);
+  sourceResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  let supabaseResponse = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  // If Supabase is not configured, remain in Local Mode
-  if (!url || !key) {
-    return supabaseResponse;
-  }
+  // If Supabase is not configured, remain in Local Mode.
+  if (!url || !key) return supabaseResponse;
+
+  const pathname = request.nextUrl.pathname;
+  const isLoginPage = pathname.startsWith("/login");
+  const isPublicAsset =
+    pathname.startsWith("/assets") ||
+    pathname.startsWith("/_next") ||
+    pathname === "/manifest.json" ||
+    pathname === "/sw.js" ||
+    pathname === "/favicon.ico";
+
+  // Static/PWA resources do not need an auth round trip.
+  if (isPublicAsset) return supabaseResponse;
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -20,12 +37,8 @@ export async function middleware(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value)
-        );
-        supabaseResponse = NextResponse.next({
-          request,
-        });
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        supabaseResponse = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options)
         );
@@ -33,34 +46,27 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Refresh auth session
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
 
-  const isLoginPage = request.nextUrl.pathname.startsWith("/login");
-  const isPublicAsset =
-    request.nextUrl.pathname.startsWith("/assets") ||
-    request.nextUrl.pathname.startsWith("/_next") ||
-    request.nextUrl.pathname === "/manifest.json" ||
-    request.nextUrl.pathname === "/favicon.ico";
-
-  if (isPublicAsset) {
-    return supabaseResponse;
+  if (authError) {
+    console.error("Supabase middleware session verification failed:", authError.message);
   }
 
-  // Auth Protection: If Cloud Mode is active and no session exists, redirect to /login
-  if (!user && !isLoginPage) {
+  if ((!user || authError) && !isLoginPage) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
-    return NextResponse.redirect(redirectUrl);
+    redirectUrl.search = "";
+    return redirectPreservingCookies(redirectUrl, supabaseResponse);
   }
 
-  // If user is logged in and visits /login, redirect to /
-  if (user && isLoginPage) {
+  if (user && !authError && isLoginPage) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/";
-    return NextResponse.redirect(redirectUrl);
+    redirectUrl.search = "";
+    return redirectPreservingCookies(redirectUrl, supabaseResponse);
   }
 
   return supabaseResponse;
