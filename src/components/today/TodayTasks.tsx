@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { usePersonaState } from "@/lib/storage";
-import { CheckSquare, Plus, Check, Trash2, ArrowUpRight } from "lucide-react";
+import { CheckSquare, Plus, Check, Trash2 } from "lucide-react";
 import { Priority, TaskStatus } from "@/types";
 
 export function TodayTasks() {
@@ -12,13 +12,16 @@ export function TodayTasks() {
 
   if (!mounted) return null;
 
-  const todayTasks = state.tasks.filter((t) => t.isToday !== false);
+  const todayTasks = state.tasks.filter((task) => task.isToday !== false);
 
   const handleAddTask = () => {
     if (!newTitle.trim()) return;
     const iso = new Date().toISOString();
     const newTask = {
-      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `task-${Date.now()}`,
+      id:
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `task-${Date.now()}`,
       title: newTitle.trim(),
       status: "pending" as TaskStatus,
       priority: newPriority,
@@ -26,28 +29,34 @@ export function TodayTasks() {
       createdAt: iso,
       updatedAt: iso,
     };
-    updateState((prev) => ({
-      ...prev,
-      tasks: [newTask, ...prev.tasks],
+    updateState((previous) => ({
+      ...previous,
+      tasks: [newTask, ...previous.tasks],
     }));
     setNewTitle("");
   };
 
   const handleToggleStatus = (id: string) => {
-    updateState((prev) => ({
-      ...prev,
-      tasks: prev.tasks.map((t) =>
-        t.id === id
-          ? { ...t, status: t.status === "done" ? "pending" : "done" }
-          : t
-      ),
+    const iso = new Date().toISOString();
+    updateState((previous) => ({
+      ...previous,
+      tasks: previous.tasks.map((task) => {
+        if (task.id !== id) return task;
+        const done = task.status !== "done";
+        return {
+          ...task,
+          status: done ? "done" : "pending",
+          completedAt: done ? iso : undefined,
+          updatedAt: iso,
+        };
+      }),
     }));
   };
 
   const handleDelete = (id: string) => {
-    updateState((prev) => ({
-      ...prev,
-      tasks: prev.tasks.filter((t) => t.id !== id),
+    updateState((previous) => ({
+      ...previous,
+      tasks: previous.tasks.filter((task) => task.id !== id),
     }));
   };
 
@@ -63,12 +72,11 @@ export function TodayTasks() {
         <div className="flex items-center gap-2">
           <CheckSquare size={16} style={{ color: "var(--accent)" }} />
           <h2 className="text-sm font-semibold" style={{ color: "var(--text)" }}>
-            Tarefas de Hoje ({todayTasks.filter((t) => t.status === "done").length}/{todayTasks.length})
+            Tarefas de Hoje ({todayTasks.filter((task) => task.status === "done").length}/{todayTasks.length})
           </h2>
         </div>
       </div>
 
-      {/* Input */}
       <div
         className="p-4 border-b flex gap-2"
         style={{ borderColor: "var(--border)" }}
@@ -76,15 +84,15 @@ export function TodayTasks() {
         <input
           type="text"
           value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+          onChange={(event) => setNewTitle(event.target.value)}
+          onKeyDown={(event) => event.key === "Enter" && handleAddTask()}
           placeholder="Adicionar tarefa para hoje..."
           className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--text-subtle)]"
           style={{ color: "var(--text)" }}
         />
         <select
           value={newPriority}
-          onChange={(e) => setNewPriority(e.target.value as Priority)}
+          onChange={(event) => setNewPriority(event.target.value as Priority)}
           className="bg-transparent text-xs outline-none rounded px-2 py-1 border"
           style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
         >
@@ -102,23 +110,22 @@ export function TodayTasks() {
         </button>
       </div>
 
-      {/* List */}
       <ul className="divide-y" style={{ borderColor: "var(--border)" }}>
         {todayTasks.length === 0 ? (
           <li className="p-6 text-center text-xs" style={{ color: "var(--text-muted)" }}>
             Nenhuma tarefa agendada para hoje. Adicione uma acima!
           </li>
         ) : (
-          todayTasks.map((t) => {
-            const isDone = t.status === "done";
+          todayTasks.map((task) => {
+            const isDone = task.status === "done";
             return (
               <li
-                key={t.id}
+                key={task.id}
                 className="flex items-center justify-between px-5 py-3 text-sm hover:bg-[var(--card-hover)] transition-colors group"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <button
-                    onClick={() => handleToggleStatus(t.id)}
+                    onClick={() => handleToggleStatus(task.id)}
                     className="w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0"
                     style={{
                       borderColor: isDone ? "var(--green)" : "var(--border)",
@@ -131,7 +138,7 @@ export function TodayTasks() {
                     className={`truncate text-sm ${isDone ? "line-through opacity-50" : ""}`}
                     style={{ color: "var(--text)" }}
                   >
-                    {t.title}
+                    {task.title}
                   </span>
                 </div>
 
@@ -139,18 +146,19 @@ export function TodayTasks() {
                   <span
                     className="text-[10px] uppercase font-bold px-2 py-0.5 rounded"
                     style={
-                      t.priority === "high"
+                      task.priority === "high"
                         ? { background: "var(--red-dim)", color: "var(--red)" }
-                        : t.priority === "medium"
-                        ? { background: "var(--amber-dim)", color: "var(--amber)" }
-                        : { background: "var(--accent-dim)", color: "var(--accent)" }
+                        : task.priority === "medium"
+                          ? { background: "var(--amber-dim)", color: "var(--amber)" }
+                          : { background: "var(--accent-dim)", color: "var(--accent)" }
                     }
                   >
-                    {t.priority || "medium"}
+                    {task.priority || "medium"}
                   </span>
                   <button
-                    onClick={() => handleDelete(t.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1 transition-opacity text-red-400 hover:text-red-300"
+                    onClick={() => handleDelete(task.id)}
+                    className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 transition-opacity text-red-400 hover:text-red-300"
+                    aria-label={`Excluir ${task.title}`}
                   >
                     <Trash2 size={14} />
                   </button>
