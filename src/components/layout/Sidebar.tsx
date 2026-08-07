@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePersonaState } from "@/lib/storage";
+import { openQuickCapture } from "@/lib/ui-events";
 
 const nav = [
   { href: "/", label: "Today", icon: Home },
@@ -28,7 +29,7 @@ export function Sidebar() {
   const { state, mounted } = usePersonaState();
 
   const inboxCount = mounted
-    ? state.inboxItems.filter((i) => !i.processed).length
+    ? state.inboxItems.filter((item) => !item.processed).length
     : 0;
 
   return (
@@ -39,7 +40,6 @@ export function Sidebar() {
         borderColor: "var(--border)",
       }}
     >
-      {/* Logo */}
       <div
         className="flex items-center gap-3 px-4 py-5 border-b"
         style={{ borderColor: "var(--border)" }}
@@ -58,18 +58,10 @@ export function Sidebar() {
         </span>
       </div>
 
-      {/* Quick Capture Hint */}
       <div className="px-2 pt-3 pb-1 hidden lg:block">
         <button
-          onClick={() => {
-            window.dispatchEvent(
-              new KeyboardEvent("keydown", {
-                key: "k",
-                ctrlKey: true,
-                bubbles: true,
-              })
-            );
-          }}
+          type="button"
+          onClick={openQuickCapture}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all duration-150 hover:bg-[var(--card-hover)]"
           style={{
             color: "var(--text-subtle)",
@@ -85,16 +77,16 @@ export function Sidebar() {
               border: "1px solid var(--border)",
             }}
           >
-            ⌘K
+            Ctrl/⌘ K
           </kbd>
         </button>
       </div>
 
-      {/* Nav */}
       <nav className="flex flex-col gap-1 p-2 flex-1 mt-1">
         {nav.map(({ href, label, icon: Icon, badge }) => {
           const active = pathname === href;
           const showBadge = badge && inboxCount > 0;
+
           return (
             <Link
               key={href}
@@ -115,10 +107,7 @@ export function Sidebar() {
               }
             >
               <div className="relative shrink-0">
-                <Icon
-                  size={18}
-                  strokeWidth={active ? 2.5 : 1.8}
-                />
+                <Icon size={18} strokeWidth={active ? 2.5 : 1.8} />
                 {showBadge && (
                   <span
                     className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
@@ -143,7 +132,6 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
       <div
         className="p-4 border-t hidden lg:block"
         style={{ borderColor: "var(--border)" }}
