@@ -69,9 +69,6 @@ export interface InboxItem {
   createdAt: string;
   processedAt?: string;
   updatedAt: string;
-
-  /** Legacy compatibility helper getter/setter */
-  processed?: boolean;
 }
 
 export interface EnglishWord {
