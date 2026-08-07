@@ -6,11 +6,11 @@ Do not overwrite durable project history with vague notes. A useful handoff shou
 
 ---
 
-## Current Handoff — GitHub Wiki Structure (`docs/Wiki/`)
+## Current Handoff — CI Watch Script Integration (`scripts/ci_watch.py`)
 
 ### Mission
 
-Create a complete GitHub Wiki documentation structure under `docs/Wiki/` following the pattern established in `D:\FrameBridge\docs\Wiki`.
+Integrate `ci_watch.py` from `quantbase-backend` into MyPersonaOS to monitor GitHub Actions CI runs, download logs, and parse error events locally.
 
 ### Status
 
@@ -18,20 +18,21 @@ Create a complete GitHub Wiki documentation structure under `docs/Wiki/` followi
 
 ### What changed
 
-- Created [docs/Wiki/Home.md](file:///d:/MyPersonaOS/docs/Wiki/Home.md) — Main GitHub Wiki landing page (Vision, Philosophy, 5 Modules, Quick Start, FAQ).
-- Created [docs/Wiki/Architecture.md](file:///d:/MyPersonaOS/docs/Wiki/Architecture.md) — Full technical architecture, system design diagram, TypeScript data interfaces, and security model.
-- Created [docs/Wiki/_Sidebar.md](file:///d:/MyPersonaOS/docs/Wiki/_Sidebar.md) — GitHub Wiki sidebar navigation.
-- Created [docs/Wiki/_Footer.md](file:///d:/MyPersonaOS/docs/Wiki/_Footer.md) — GitHub Wiki footer.
-- Updated [docs/README.md](file:///d:/MyPersonaOS/docs/README.md) — Documentation index referencing the Wiki files.
+- Created [scripts/ci_watch.py](file:///d:/MyPersonaOS/scripts/ci_watch.py):
+  - Configured default repository `dreyvinixz/MyPersonaOS`.
+  - Added environment auto-loading (`.env.local`, `.env.dev`, `.env`).
+  - Added ANSI escape code & timestamp stripping.
+  - Added error extraction engines for `CRITICAL`, `ERROR`, `WARNING`, and Python tracebacks with context windows.
+  - Added local log exporter writing `summary.txt`, `errors.txt`, `jobs/`, and `failed_steps/` into `ci_logs/`.
+- Updated [package.json](file:///d:/MyPersonaOS/package.json) with command `"ci:watch": "python scripts/ci_watch.py"`.
+- Updated [.gitignore](file:///d:/MyPersonaOS/.gitignore) to exclude `/ci_logs`.
 - Updated [.agents/STATE.md](file:///d:/MyPersonaOS/.agents/STATE.md).
 
 ### Files touched
 
-- `docs/Wiki/Home.md`
-- `docs/Wiki/Architecture.md`
-- `docs/Wiki/_Sidebar.md`
-- `docs/Wiki/_Footer.md`
-- `docs/README.md`
+- `scripts/ci_watch.py`
+- `package.json`
+- `.gitignore`
 - `.agents/STATE.md`
 
 ### Next best action

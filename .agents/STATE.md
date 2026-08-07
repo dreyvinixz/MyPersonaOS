@@ -93,9 +93,10 @@ The product is personal-only for now.
 - interactive Inbox, Tasks, Projects, Content Studio, and English Lab views;
 - AI collaboration documentation under `.agents/` and skills bank;
 - open-source files (`LICENSE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `.env.example`);
-- GitHub Actions CI/CD workflows (`ci.yml`, `release.yml`) with automated diagnostic log capture and artifact upload on build failure (adapted from FrameBridge pattern);
-
+- GitHub Actions CI/CD workflows (`ci.yml`, `release.yml`) with automated diagnostic log capture and artifact upload on build failure;
+- Python CI monitoring CLI script (`scripts/ci_watch.py` / `npm run ci:watch`) to monitor Actions runs, download logs, and extract categorized errors locally;
 - documentation suite under `docs/` (`about.md`, `architecture.md`, `README.md`), GitHub Wiki pages (`docs/Wiki/` with `Home.md`, `Architecture.md`, `_Sidebar.md`, `_Footer.md`), and `CHANGELOG.md`.
+
 
 
 ### Not yet reliable/complete
