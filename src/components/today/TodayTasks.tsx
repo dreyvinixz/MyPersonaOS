@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePersonaState } from "@/lib/storage";
+import { createEntityId } from "@/lib/ids";
 import { CheckSquare, Plus, Check, Trash2 } from "lucide-react";
 import { Priority, TaskStatus } from "@/types";
 
@@ -18,10 +19,7 @@ export function TodayTasks() {
     if (!newTitle.trim()) return;
     const iso = new Date().toISOString();
     const newTask = {
-      id:
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `task-${Date.now()}`,
+      id: createEntityId(),
       title: newTitle.trim(),
       status: "pending" as TaskStatus,
       priority: newPriority,
