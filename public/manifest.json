@@ -1,0 +1,17 @@
+{
+  "name": "MyPersonaOS",
+  "short_name": "PersonaOS",
+  "description": "Personal-first life operating system — What deserves attention today?",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090E",
+  "theme_color": "#09090E",
+  "icons": [
+    {
+      "src": "/assets/oil-slick/oil-orb.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
