@@ -1,115 +1,243 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { PersonaState, SyncStatus } from "@/types";
 import { localRepository } from "@/lib/repositories/local-repository";
 import { supabaseRepository } from "@/lib/repositories/supabase-repository";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { runLocalToCloudMigration } from "@/lib/sync/migration";
 import { subscribeToPersonaRealtime } from "@/lib/sync/realtime";
+import {
+  buildCloudMutations,
+  enqueueCloudMutations,
+  flushCloudOutbox,
+  getPendingMutationCount,
+} from "@/lib/sync/outbox";
 
-export function usePersonaStore() {
-  const { user, isCloudMode } = useAuth();
-  const [state, setState] = useState<PersonaState>(() =>
-    localRepository.getState()
-  );
+type PersonaStoreValue = {
+  state: PersonaState;
+  updateState: (updater: (previous: PersonaState) => PersonaState) => void;
+  syncStatus: SyncStatus;
+  mounted: boolean;
+};
+
+const PersonaStoreContext = createContext<PersonaStoreValue | null>(null);
+
+export function PersonaProvider({ children }: { children: React.ReactNode }) {
+  const { user, isCloudMode, loading: authLoading } = useAuth();
+  const initialStateRef = useRef<PersonaState | null>(null);
+  if (!initialStateRef.current) initialStateRef.current = localRepository.getState();
+
+  const [state, setState] = useState<PersonaState>(initialStateRef.current);
+  const stateRef = useRef(state);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("initializing");
   const [mounted, setMounted] = useState(false);
+  const flushPromiseRef = useRef<Promise<void> | null>(null);
+  const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadCloudState = useCallback(async (userId: string) => {
-    try {
-      setSyncStatus("syncing");
-      // 1. Run local -> cloud idempotent migration
-      await runLocalToCloudMigration(userId);
-
-      // 2. Fetch full state from Supabase
-      const cloudState = await supabaseRepository.fetchAllState(userId);
-      setState(cloudState);
-      localRepository.saveState(cloudState);
-      setSyncStatus("synced");
-    } catch (err) {
-      console.error("Failed to load cloud state:", err);
-      setSyncStatus("error");
-    }
+  const commitState = useCallback((next: PersonaState) => {
+    stateRef.current = next;
+    setState(next);
+    localRepository.saveState(next);
   }, []);
+
+  const flushQueuedMutations = useCallback(async (userId: string) => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setSyncStatus("offline");
+      return;
+    }
+
+    if (flushPromiseRef.current) return flushPromiseRef.current;
+
+    const run = (async () => {
+      setSyncStatus("syncing");
+      await flushCloudOutbox(userId);
+      setSyncStatus("synced");
+    })();
+
+    flushPromiseRef.current = run.finally(() => {
+      flushPromiseRef.current = null;
+    });
+
+    return flushPromiseRef.current;
+  }, []);
+
+  const refreshFromCloud = useCallback(
+    async (userId: string) => {
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        setSyncStatus("offline");
+        return;
+      }
+
+      if (getPendingMutationCount(userId) > 0) {
+        await flushQueuedMutations(userId);
+      }
+
+      // Never let a remote snapshot overwrite local changes that are still queued.
+      if (getPendingMutationCount(userId) > 0) return;
+
+      setSyncStatus("syncing");
+      const cloudState = await supabaseRepository.fetchAllState(userId);
+      commitState(cloudState);
+      setSyncStatus("synced");
+    },
+    [commitState, flushQueuedMutations]
+  );
+
+  const initializeCloud = useCallback(
+    async (userId: string) => {
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        setSyncStatus("offline");
+        return;
+      }
+
+      setSyncStatus("syncing");
+
+      // Migration throws on failure. We intentionally do not fetch cloud state
+      // after a failed migration, so local data can never be replaced by an
+      // empty/partial cloud snapshot.
+      await runLocalToCloudMigration(userId);
+      await flushQueuedMutations(userId);
+
+      if (getPendingMutationCount(userId) > 0) {
+        throw new Error("Cloud outbox still contains pending mutations after flush.");
+      }
+
+      const cloudState = await supabaseRepository.fetchAllState(userId);
+      commitState(cloudState);
+      setSyncStatus("synced");
+    },
+    [commitState, flushQueuedMutations]
+  );
 
   useEffect(() => {
     setMounted(true);
 
-    if (!isCloudMode || !user) {
-      const local = localRepository.getState();
-      setState(local);
-      setSyncStatus("local");
+    if (authLoading) {
+      setSyncStatus("initializing");
       return;
     }
 
-    let isMounted = true;
-    loadCloudState(user.id);
+    if (!isCloudMode) {
+      commitState(localRepository.getState());
+      setSyncStatus("local");
 
-    // Subscribe to Postgres Changes Realtime
-    const channel = subscribeToPersonaRealtime(user.id, () => {
-      if (isMounted) {
-        loadCloudState(user.id);
+      // Keep multiple browser tabs consistent in Local Mode.
+      const handleStorage = () => commitState(localRepository.getState());
+      window.addEventListener("storage", handleStorage);
+      return () => window.removeEventListener("storage", handleStorage);
+    }
+
+    if (!user) {
+      setSyncStatus("initializing");
+      return;
+    }
+
+    let disposed = false;
+    let channel: ReturnType<typeof subscribeToPersonaRealtime> = null;
+
+    const scheduleRemoteRefresh = () => {
+      if (disposed) return;
+      if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
+      realtimeTimerRef.current = setTimeout(() => {
+        if (disposed || getPendingMutationCount(user.id) > 0) return;
+        refreshFromCloud(user.id).catch((error) => {
+          console.error("Realtime refresh failed:", error);
+          setSyncStatus("error");
+        });
+      }, 250);
+    };
+
+    const start = async () => {
+      try {
+        await initializeCloud(user.id);
+        if (disposed) return;
+        channel = subscribeToPersonaRealtime(user.id, scheduleRemoteRefresh);
+      } catch (error) {
+        console.error("Cloud initialization failed; preserving local state:", error);
+        setSyncStatus("error");
       }
-    });
+    };
+
+    const handleOffline = () => setSyncStatus("offline");
+    const handleOnline = () => {
+      initializeCloud(user.id).catch((error) => {
+        console.error("Cloud reconnect failed:", error);
+        setSyncStatus("error");
+      });
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    void start();
 
     return () => {
-      isMounted = false;
-      if (channel) channel.unsubscribe();
+      disposed = true;
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+      if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
+      if (channel) void channel.unsubscribe();
     };
-  }, [isCloudMode, user, loadCloudState]);
+  }, [
+    authLoading,
+    commitState,
+    initializeCloud,
+    isCloudMode,
+    refreshFromCloud,
+    user,
+  ]);
 
   const updateState = useCallback(
-    (updater: (prev: PersonaState) => PersonaState) => {
-      setState((prev) => {
-        const next = updater(prev);
+    (updater: (previous: PersonaState) => PersonaState) => {
+      const previous = stateRef.current;
+      const next = updater(previous);
 
-        // Always save to localStorage for offline cache
-        localRepository.saveState(next);
+      commitState(next);
 
-        // If in Cloud Mode and authenticated, push mutations asynchronously
-        if (isCloudMode && user) {
-          setSyncStatus("syncing");
-          
-          const syncOps: Promise<void>[] = [];
+      if (!isCloudMode || !user) return;
 
-          if (prev.mainFocus !== next.mainFocus) {
-            syncOps.push(supabaseRepository.saveMainFocus(user.id, next.mainFocus));
-          }
+      const mutations = buildCloudMutations(previous, next, user.id);
+      if (mutations.length === 0) return;
 
-          next.inboxItems.forEach((item) => {
-            syncOps.push(supabaseRepository.upsertInboxItem(user.id, item));
-          });
+      enqueueCloudMutations(mutations);
 
-          next.tasks.forEach((task) => {
-            syncOps.push(supabaseRepository.upsertTask(user.id, task));
-          });
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        setSyncStatus("offline");
+        return;
+      }
 
-          next.projects.forEach((project) => {
-            syncOps.push(supabaseRepository.upsertProject(user.id, project));
-          });
-
-          next.contentPieces.forEach((content) => {
-            syncOps.push(supabaseRepository.upsertContentPiece(user.id, content));
-          });
-
-          next.englishWords.forEach((word) => {
-            syncOps.push(supabaseRepository.upsertEnglishWord(user.id, word));
-          });
-
-          Promise.all(syncOps)
-            .then(() => setSyncStatus("synced"))
-            .catch((err) => {
-              console.error("Cloud sync mutation error:", err);
-              setSyncStatus("error");
-            });
-        }
-
-        return next;
+      void flushQueuedMutations(user.id).catch((error) => {
+        console.error("Cloud sync mutation failed; operation remains queued:", error);
+        setSyncStatus("error");
       });
     },
-    [isCloudMode, user]
+    [commitState, flushQueuedMutations, isCloudMode, user]
   );
 
-  return { state, updateState, syncStatus, mounted };
+  const value = useMemo<PersonaStoreValue>(
+    () => ({ state, updateState, syncStatus, mounted }),
+    [mounted, state, syncStatus, updateState]
+  );
+
+  return (
+    <PersonaStoreContext.Provider value={value}>
+      {children}
+    </PersonaStoreContext.Provider>
+  );
+}
+
+export function usePersonaStore(): PersonaStoreValue {
+  const context = useContext(PersonaStoreContext);
+  if (!context) {
+    throw new Error("usePersonaStore must be used inside PersonaProvider");
+  }
+  return context;
 }
