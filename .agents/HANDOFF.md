@@ -6,11 +6,11 @@ Do not overwrite durable project history with vague notes. A useful handoff shou
 
 ---
 
-## Current Handoff — CI/CD Diagnostic Log Capture (FrameBridge Integration)
+## Current Handoff — GitHub Wiki Structure (`docs/Wiki/`)
 
 ### Mission
 
-Incorporate the CI/CD error handling and diagnostic log capture system from `D:\FrameBridge` into MyPersonaOS pipelines.
+Create a complete GitHub Wiki documentation structure under `docs/Wiki/` following the pattern established in `D:\FrameBridge\docs\Wiki`.
 
 ### Status
 
@@ -18,19 +18,21 @@ Incorporate the CI/CD error handling and diagnostic log capture system from `D:\
 
 ### What changed
 
-- Updated [.github/workflows/ci.yml](file:///d:/MyPersonaOS/.github/workflows/ci.yml):
-  - Added `if: failure()` step to capture Node.js, npm, and environment build logs on CI failures.
-  - Configured `actions/upload-artifact@v4` to automatically preserve `ci-failure-logs` as a downloadable artifact.
-- Updated [.github/workflows/release.yml](file:///d:/MyPersonaOS/.github/workflows/release.yml):
-  - Added dynamic release notes generator extracting recent Git commits (FrameBridge multi-line `$GITHUB_OUTPUT` pattern).
-  - Added `if: failure()` diagnostic log capture and artifact uploading (`release-failure-logs`).
+- Created [docs/Wiki/Home.md](file:///d:/MyPersonaOS/docs/Wiki/Home.md) — Main GitHub Wiki landing page (Vision, Philosophy, 5 Modules, Quick Start, FAQ).
+- Created [docs/Wiki/Architecture.md](file:///d:/MyPersonaOS/docs/Wiki/Architecture.md) — Full technical architecture, system design diagram, TypeScript data interfaces, and security model.
+- Created [docs/Wiki/_Sidebar.md](file:///d:/MyPersonaOS/docs/Wiki/_Sidebar.md) — GitHub Wiki sidebar navigation.
+- Created [docs/Wiki/_Footer.md](file:///d:/MyPersonaOS/docs/Wiki/_Footer.md) — GitHub Wiki footer.
+- Updated [docs/README.md](file:///d:/MyPersonaOS/docs/README.md) — Documentation index referencing the Wiki files.
 - Updated [.agents/STATE.md](file:///d:/MyPersonaOS/.agents/STATE.md).
 
 ### Files touched
 
-- `.github/workflows/ci.yml` — Diagnostic logs & failure artifact upload
-- `.github/workflows/release.yml` — Commit notes generator & failure artifact upload
-- `.agents/STATE.md` — Updated system state
+- `docs/Wiki/Home.md`
+- `docs/Wiki/Architecture.md`
+- `docs/Wiki/_Sidebar.md`
+- `docs/Wiki/_Footer.md`
+- `docs/README.md`
+- `.agents/STATE.md`
 
 ### Next best action
 

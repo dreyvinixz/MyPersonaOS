@@ -95,7 +95,8 @@ The product is personal-only for now.
 - open-source files (`LICENSE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `.env.example`);
 - GitHub Actions CI/CD workflows (`ci.yml`, `release.yml`) with automated diagnostic log capture and artifact upload on build failure (adapted from FrameBridge pattern);
 
-- documentation suite under `docs/` (`about.md`, `architecture.md`, `README.md`) and `CHANGELOG.md`.
+- documentation suite under `docs/` (`about.md`, `architecture.md`, `README.md`), GitHub Wiki pages (`docs/Wiki/` with `Home.md`, `Architecture.md`, `_Sidebar.md`, `_Footer.md`), and `CHANGELOG.md`.
+
 
 ### Not yet reliable/complete
 
