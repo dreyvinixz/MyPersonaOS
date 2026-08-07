@@ -16,18 +16,20 @@ type MutationBase = {
   createdAt: string;
 };
 
-export type CloudMutation =
-  | (MutationBase & { kind: "saveMainFocus"; value: string })
-  | (MutationBase & { kind: "upsertTask"; entity: Task })
-  | (MutationBase & { kind: "deleteTask"; entityId: string })
-  | (MutationBase & { kind: "upsertProject"; entity: Project })
-  | (MutationBase & { kind: "deleteProject"; entityId: string })
-  | (MutationBase & { kind: "upsertInboxItem"; entity: InboxItem })
-  | (MutationBase & { kind: "deleteInboxItem"; entityId: string })
-  | (MutationBase & { kind: "upsertContentPiece"; entity: ContentPiece })
-  | (MutationBase & { kind: "deleteContentPiece"; entityId: string })
-  | (MutationBase & { kind: "upsertEnglishWord"; entity: EnglishWord })
-  | (MutationBase & { kind: "deleteEnglishWord"; entityId: string });
+type CloudMutationPayload =
+  | { kind: "saveMainFocus"; value: string }
+  | { kind: "upsertTask"; entity: Task }
+  | { kind: "deleteTask"; entityId: string }
+  | { kind: "upsertProject"; entity: Project }
+  | { kind: "deleteProject"; entityId: string }
+  | { kind: "upsertInboxItem"; entity: InboxItem }
+  | { kind: "deleteInboxItem"; entityId: string }
+  | { kind: "upsertContentPiece"; entity: ContentPiece }
+  | { kind: "deleteContentPiece"; entityId: string }
+  | { kind: "upsertEnglishWord"; entity: EnglishWord }
+  | { kind: "deleteEnglishWord"; entityId: string };
+
+export type CloudMutation = MutationBase & CloudMutationPayload;
 
 function randomId(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
@@ -77,10 +79,7 @@ function mutationKey(mutation: CloudMutation): string {
   }
 }
 
-function withMeta<T extends Omit<CloudMutation, keyof MutationBase>>(
-  userId: string,
-  mutation: T
-): CloudMutation {
+function withMeta(userId: string, mutation: CloudMutationPayload): CloudMutation {
   return {
     ...mutation,
     mutationId: randomId(),
