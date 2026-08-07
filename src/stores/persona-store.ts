@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  createElement,
   useCallback,
   useContext,
   useEffect,
@@ -33,8 +34,7 @@ const PersonaStoreContext = createContext<PersonaStoreValue | null>(null);
 
 export function PersonaProvider({ children }: { children: React.ReactNode }) {
   const { user, isCloudMode, loading: authLoading } = useAuth();
-  const initialStateRef = useRef<PersonaState | null>(null);
-  if (!initialStateRef.current) initialStateRef.current = localRepository.getState();
+  const initialStateRef = useRef<PersonaState>(localRepository.getState());
 
   const [state, setState] = useState<PersonaState>(initialStateRef.current);
   const stateRef = useRef(state);
@@ -227,11 +227,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
     [mounted, state, syncStatus, updateState]
   );
 
-  return (
-    <PersonaStoreContext.Provider value={value}>
-      {children}
-    </PersonaStoreContext.Provider>
-  );
+  return createElement(PersonaStoreContext.Provider, { value }, children);
 }
 
 export function usePersonaStore(): PersonaStoreValue {
