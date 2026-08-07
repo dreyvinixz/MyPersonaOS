@@ -1,0 +1,31 @@
+version: 1
+project: MyPersonaOS
+skills:
+  - id: ui-and-product
+    file: ui-and-product.md
+    triggers: [ui, ux, dashboard, page, component, flow, today]
+    purpose: Build user-facing flows that keep Today central and reduce cognitive load.
+  - id: supabase-and-data
+    file: supabase-and-data.md
+    triggers: [database, supabase, auth, rls, persistence, sync, migration]
+    purpose: Add private, explicit, migration-friendly persistence and authentication.
+  - id: content-system
+    file: content-system.md
+    triggers: [content, codetoday, personal, quant-base, youtube, reels, tiktok, linkedin]
+    purpose: Model content as master ideas with reusable platform derivatives and a clear pipeline.
+  - id: english-system
+    file: english-system.md
+    triggers: [english, vocabulary, pronunciation, study, session, spaced-repetition]
+    purpose: Implement the evolving personal English-learning method without hard-coding assumptions too early.
+  - id: pwa-mobile
+    file: pwa-mobile.md
+    triggers: [pwa, mobile, responsive, install, offline, manifest, service-worker]
+    purpose: Keep one web-first codebase usable on phone and desktop.
+  - id: quality-and-delivery
+    file: quality-and-delivery.md
+    triggers: [test, build, lint, refactor, dependency, validation, delivery]
+    purpose: Deliver small, validated changes and report blockers truthfully.
+  - id: agent-handoff
+    file: agent-handoff.md
+    triggers: [handoff, blocked, unfinished, continuation, context-transfer]
+    purpose: Transfer work between agents without losing decisions, risks, or next actions.
