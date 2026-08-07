@@ -33,18 +33,65 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify build
+      - name: Verify build & typecheck
         run: |
           npx tsc --noEmit
           npm run build
+
+      - name: Generate Release Notes & Changelog Summary
+        id: release_notes
+        run: |
+          TAG="${{ github.event.inputs.tag_name || github.ref_name }}"
+          DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          COMMITS=$(git log -5 --pretty=format:"* %h - %s")
+          
+          NOTES=$(cat <<EOF
+          # MyPersonaOS Release $TAG
+
+          Automated open-source release compiled and verified by GitHub Actions.
+
+          ### Recent Commits
+          $COMMITS
+
+          ### Release Info
+          * **Tag:** $TAG
+          * **Build Date:** $DATE
+          * **Status:** Passed TypeScript typecheck & Next.js production build
+
+          ---
+          *For full documentation and roadmap, see the [MyPersonaOS Docs](docs/).*
+          EOF
+          )
+
+          EOF_MARKER=$(openssl rand -hex 8)
+          echo "NOTES<<$EOF_MARKER" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "$EOF_MARKER" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
-          name: Release ${{ github.event.inputs.tag_name || github.ref_name }}
-          generate_release_notes: true
+          name: MyPersonaOS ${{ github.event.inputs.tag_name || github.ref_name }}
+          body: ${{ steps.release_notes.outputs.NOTES }}
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Capture Release Build Logs on Failure
+        if: failure()
+        run: |
+          mkdir -p release-logs
+          echo "=== Release Build Failure Logs ===" > release-logs/environment.log
+          node -v >> release-logs/environment.log
+          npm -v >> release-logs/environment.log
+          cp -r ~/.npm/_logs/* release-logs/ 2>/dev/null || true
+
+      - name: Upload Release Error Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-failure-logs
+          path: release-logs/
+          retention-days: 7

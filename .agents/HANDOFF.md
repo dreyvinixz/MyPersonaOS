@@ -6,11 +6,11 @@ Do not overwrite durable project history with vague notes. A useful handoff shou
 
 ---
 
-## Current Handoff — V1 Code Import & Local Storage Integration
+## Current Handoff — CI/CD Diagnostic Log Capture (FrameBridge Integration)
 
 ### Mission
 
-Integrate components, models, and styling from `MyPersonaOS-v1.zip` into `src/` and connect reactive client-side persistence (`localStorage`).
+Incorporate the CI/CD error handling and diagnostic log capture system from `D:\FrameBridge` into MyPersonaOS pipelines.
 
 ### Status
 
@@ -18,35 +18,19 @@ Integrate components, models, and styling from `MyPersonaOS-v1.zip` into `src/` 
 
 ### What changed
 
-- Imported domain types into [src/types/index.ts](file:///d:/MyPersonaOS/src/types/index.ts).
-- Created reactive `localStorage` state hook [src/lib/storage.ts](file:///d:/MyPersonaOS/src/lib/storage.ts) (`usePersonaState`).
-- Added dark mode design system variables to [src/app/globals.css](file:///d:/MyPersonaOS/src/app/globals.css) with Tailwind CSS v3 directives.
-- Implemented responsive navigation [src/components/layout/Sidebar.tsx](file:///d:/MyPersonaOS/src/components/layout/Sidebar.tsx).
-- Built Today Command Center components under `src/components/today/`:
-  - `DateClock.tsx`
-  - `MainFocus.tsx`
-  - `TodayTasks.tsx`
-  - `QuickCapture.tsx`
-  - `ModuleSummaries.tsx`
-- Connected domain routes to interactive state:
-  - [/inbox](file:///d:/MyPersonaOS/src/app/inbox/page.tsx)
-  - [/tasks](file:///d:/MyPersonaOS/src/app/tasks/page.tsx)
-  - [/projects](file:///d:/MyPersonaOS/src/app/projects/page.tsx)
-  - [/content](file:///d:/MyPersonaOS/src/app/content/page.tsx)
-  - [/english](file:///d:/MyPersonaOS/src/app/english/page.tsx)
+- Updated [.github/workflows/ci.yml](file:///d:/MyPersonaOS/.github/workflows/ci.yml):
+  - Added `if: failure()` step to capture Node.js, npm, and environment build logs on CI failures.
+  - Configured `actions/upload-artifact@v4` to automatically preserve `ci-failure-logs` as a downloadable artifact.
+- Updated [.github/workflows/release.yml](file:///d:/MyPersonaOS/.github/workflows/release.yml):
+  - Added dynamic release notes generator extracting recent Git commits (FrameBridge multi-line `$GITHUB_OUTPUT` pattern).
+  - Added `if: failure()` diagnostic log capture and artifact uploading (`release-failure-logs`).
+- Updated [.agents/STATE.md](file:///d:/MyPersonaOS/.agents/STATE.md).
 
 ### Files touched
 
-- `src/types/index.ts`
-- `src/lib/storage.ts`
-- `src/lib/utils.ts`
-- `src/app/globals.css`
-- `src/app/layout.tsx`
-- `src/app/page.tsx`
-- `src/components/layout/Sidebar.tsx`
-- `src/components/today/*`
-- `src/app/inbox/page.tsx`, `tasks/page.tsx`, `projects/page.tsx`, `content/page.tsx`, `english/page.tsx`
-- `.agents/STATE.md`
+- `.github/workflows/ci.yml` — Diagnostic logs & failure artifact upload
+- `.github/workflows/release.yml` — Commit notes generator & failure artifact upload
+- `.agents/STATE.md` — Updated system state
 
 ### Next best action
 

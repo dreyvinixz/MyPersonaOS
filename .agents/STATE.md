@@ -93,7 +93,8 @@ The product is personal-only for now.
 - interactive Inbox, Tasks, Projects, Content Studio, and English Lab views;
 - AI collaboration documentation under `.agents/` and skills bank;
 - open-source files (`LICENSE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `.env.example`);
-- GitHub Actions CI/CD workflows (`ci.yml`, `release.yml`);
+- GitHub Actions CI/CD workflows (`ci.yml`, `release.yml`) with automated diagnostic log capture and artifact upload on build failure (adapted from FrameBridge pattern);
+
 - documentation suite under `docs/` (`about.md`, `architecture.md`, `README.md`) and `CHANGELOG.md`.
 
 ### Not yet reliable/complete

@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   lint-and-build:
@@ -32,3 +33,22 @@ jobs:
 
       - name: Run Next.js production build
         run: npm run build
+
+      - name: Capture Build Logs on Failure
+        if: failure()
+        run: |
+          mkdir -p ci-logs
+          echo "=== Node & Environment Info ===" > ci-logs/environment.log
+          node -v >> ci-logs/environment.log
+          npm -v >> ci-logs/environment.log
+          echo "=== NPM Logs ===" >> ci-logs/environment.log
+          cp -r ~/.npm/_logs/* ci-logs/ 2>/dev/null || true
+          git status >> ci-logs/git-status.log 2>&1 || true
+
+      - name: Upload CI Error & Log Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failure-logs
+          path: ci-logs/
+          retention-days: 7
