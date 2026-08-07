@@ -16,13 +16,15 @@ export function TodayTasks() {
 
   const handleAddTask = () => {
     if (!newTitle.trim()) return;
+    const iso = new Date().toISOString();
     const newTask = {
-      id: Date.now().toString(),
+      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `task-${Date.now()}`,
       title: newTitle.trim(),
       status: "pending" as TaskStatus,
       priority: newPriority,
       isToday: true,
-      createdAt: new Date().toISOString(),
+      createdAt: iso,
+      updatedAt: iso,
     };
     updateState((prev) => ({
       ...prev,

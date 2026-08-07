@@ -82,12 +82,14 @@ export function GlobalQuickCapture() {
     const content = value.trim();
     if (!content) return;
 
+    const iso = new Date().toISOString();
     const newItem = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}`,
       content,
       type: selected,
-      createdAt: new Date().toISOString(),
-      processed: false,
+      status: "pending" as const,
+      createdAt: iso,
+      updatedAt: iso,
     };
 
     updateState((previous) => ({

@@ -31,24 +31,31 @@ export default function InboxPage() {
 
   if (!mounted) return null;
 
+  const isUnprocessed = (item: InboxItem) => item.status === "pending" || (!item.status && !item.processed);
+  const isProcessed = (item: InboxItem) => item.status === "archived" || item.status === "converted" || (item.processed && !item.status);
+
   const filtered = state.inboxItems.filter((item) => {
-    if (filter === "unprocessed") return !item.processed;
-    if (filter === "processed") return item.processed;
+    if (filter === "unprocessed") return isUnprocessed(item);
+    if (filter === "processed") return isProcessed(item);
     return true;
   });
 
-  const unprocessedCount = state.inboxItems.filter(
-    (item) => !item.processed
-  ).length;
-  const processedCount = state.inboxItems.filter(
-    (item) => item.processed
-  ).length;
+  const unprocessedCount = state.inboxItems.filter(isUnprocessed).length;
+  const processedCount = state.inboxItems.filter(isProcessed).length;
 
   const handleMarkProcessed = (id: string) => {
+    const iso = new Date().toISOString();
     updateState((previous) => ({
       ...previous,
       inboxItems: previous.inboxItems.map((item) =>
-        item.id === id ? { ...item, processed: !item.processed } : item
+        item.id === id
+          ? {
+              ...item,
+              status: isProcessed(item) ? "pending" : "archived",
+              processedAt: isProcessed(item) ? undefined : iso,
+              updatedAt: iso,
+            }
+          : item
       ),
     }));
   };
@@ -67,10 +74,13 @@ export default function InboxPage() {
   };
 
   const handleArchive = (id: string) => {
+    const iso = new Date().toISOString();
     updateState((previous) => ({
       ...previous,
       inboxItems: previous.inboxItems.map((item) =>
-        item.id === id ? { ...item, processed: true } : item
+        item.id === id
+          ? { ...item, status: "archived", processedAt: iso, updatedAt: iso }
+          : item
       ),
     }));
     setActiveMenu(null);
@@ -88,7 +98,7 @@ export default function InboxPage() {
 
     updateState((previous) => ({
       ...previous,
-      inboxItems: previous.inboxItems.filter((item) => !item.processed),
+      inboxItems: previous.inboxItems.filter((item) => !isProcessed(item)),
     }));
   };
 
@@ -109,27 +119,33 @@ export default function InboxPage() {
     const title = convertTitle.trim();
     const { item, target } = convertingItem;
     const now = new Date().toISOString();
-    const uniqueSuffix = `${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 7)}`;
+    const targetId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}`;
 
     if (target === "task") {
       updateState((previous) => ({
         ...previous,
         tasks: [
           {
-            id: `t-${uniqueSuffix}`,
+            id: targetId,
             title,
             status: "pending" as const,
             priority: "medium" as const,
             isToday: false,
             createdAt: now,
+            updatedAt: now,
           },
           ...previous.tasks,
         ],
         inboxItems: previous.inboxItems.map((candidate) =>
           candidate.id === item.id
-            ? { ...candidate, processed: true }
+            ? {
+                ...candidate,
+                status: "converted" as const,
+                convertedToType: "task" as const,
+                convertedToId: targetId,
+                processedAt: now,
+                updatedAt: now,
+              }
             : candidate
         ),
       }));
@@ -138,7 +154,7 @@ export default function InboxPage() {
         ...previous,
         projects: [
           {
-            id: `p-${uniqueSuffix}`,
+            id: targetId,
             name: title,
             description: `Originado da Inbox: "${item.content.substring(
               0,
@@ -147,12 +163,20 @@ export default function InboxPage() {
             progress: 0,
             tasks: [],
             createdAt: now,
+            updatedAt: now,
           },
           ...previous.projects,
         ],
         inboxItems: previous.inboxItems.map((candidate) =>
           candidate.id === item.id
-            ? { ...candidate, processed: true }
+            ? {
+                ...candidate,
+                status: "converted" as const,
+                convertedToType: "project" as const,
+                convertedToId: targetId,
+                processedAt: now,
+                updatedAt: now,
+              }
             : candidate
         ),
       }));
@@ -300,88 +324,97 @@ export default function InboxPage() {
               </div>
             </li>
           ) : (
-            filtered.map((item) => (
-              <li
-                key={item.id}
-                className="group p-4 flex items-start justify-between gap-3 transition-colors relative"
-                style={{
-                  background: item.processed ? "transparent" : "var(--card)",
-                }}
-              >
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <button
-                    type="button"
-                    onClick={() => handleMarkProcessed(item.id)}
-                    className="mt-0.5 shrink-0 transition-colors"
-                    aria-label={
-                      item.processed
-                        ? "Marcar como pendente"
-                        : "Marcar como processado"
-                    }
-                  >
-                    <CheckCircle2
-                      size={20}
-                      style={{
-                        color: item.processed ? "var(--green)" : "var(--border)",
-                      }}
-                    />
-                  </button>
-
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-base font-medium leading-relaxed break-words ${
-                        item.processed ? "line-through opacity-45" : ""
-                      }`}
-                      style={{ color: "var(--text)" }}
-                    >
-                      {item.content}
-                    </p>
-                    <p
-                      className="text-xs font-mono font-medium mt-1.5"
-                      style={{ color: "var(--text-subtle)" }}
-                    >
-                      {formatDate(item.createdAt)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <span
-                    className="hidden sm:inline text-xs uppercase font-mono font-semibold px-2.5 py-1 rounded border"
-                    style={{
-                      background: "rgba(255,255,255,0.03)",
-                      color: "var(--text-muted)",
-                      borderColor: "var(--border-subtle)",
-                    }}
-                  >
-                    {item.type}
-                  </span>
-
-                  <div className="relative">
+            filtered.map((item) => {
+              const processed = isProcessed(item);
+              return (
+                <li
+                  key={item.id}
+                  className="group p-4 flex items-start justify-between gap-3 transition-colors relative"
+                  style={{
+                    background: processed ? "transparent" : "var(--card)",
+                  }}
+                >
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     <button
                       type="button"
-                      onClick={() =>
-                        setActiveMenu(activeMenu === item.id ? null : item.id)
+                      onClick={() => handleMarkProcessed(item.id)}
+                      className="mt-0.5 shrink-0 transition-colors"
+                      aria-label={
+                        processed
+                          ? "Marcar como pendente"
+                          : "Marcar como processado"
                       }
-                      className="p-1.5 rounded-md transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100"
-                      style={{ color: "var(--text-muted)" }}
-                      aria-label="Abrir ações do item"
-                      aria-expanded={activeMenu === item.id}
                     >
-                      <MoreHorizontal size={17} />
+                      <CheckCircle2
+                        size={20}
+                        style={{
+                          color: processed ? "var(--green)" : "var(--border)",
+                        }}
+                      />
                     </button>
 
-                    {activeMenu === item.id && (
-                      <div
-                        className="absolute right-0 top-8 z-50 w-48 rounded-xl border shadow-2xl py-1 animate-fade-in"
-                        style={{
-                          background: "var(--card)",
-                          borderColor: "var(--border)",
-                          boxShadow:
-                            "0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--border)",
-                        }}
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-base font-medium leading-relaxed break-words ${
+                          processed ? "line-through opacity-45" : ""
+                        }`}
+                        style={{ color: "var(--text)" }}
                       >
-                        {!item.processed && (
+                        {item.content}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span
+                          className="text-xs font-mono font-medium"
+                          style={{ color: "var(--text-subtle)" }}
+                        >
+                          {formatDate(item.createdAt)}
+                        </span>
+                        {item.status === "converted" && item.convertedToType && (
+                          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[var(--accent-dim)] text-[var(--accent-hover)] border border-[rgba(155,135,245,0.25)]">
+                            → {item.convertedToType}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className="hidden sm:inline text-xs uppercase font-mono font-semibold px-2.5 py-1 rounded border"
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                        color: "var(--text-muted)",
+                        borderColor: "var(--border-subtle)",
+                      }}
+                    >
+                      {item.type}
+                    </span>
+
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setActiveMenu(activeMenu === item.id ? null : item.id)
+                        }
+                        className="p-1.5 rounded-md transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100"
+                        style={{ color: "var(--text-muted)" }}
+                        aria-label="Abrir ações do item"
+                        aria-expanded={activeMenu === item.id}
+                      >
+                        <MoreHorizontal size={17} />
+                      </button>
+
+                      {activeMenu === item.id && (
+                        <div
+                          className="absolute right-0 top-8 z-50 w-48 rounded-xl border shadow-2xl py-1 animate-fade-in"
+                          style={{
+                            background: "var(--card)",
+                            borderColor: "var(--border)",
+                            boxShadow:
+                              "0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--border)",
+                          }}
+                        >
+                          {!processed && (
                           <>
                             <button
                               type="button"
@@ -426,7 +459,8 @@ export default function InboxPage() {
                   </div>
                 </div>
               </li>
-            ))
+            );
+          })
           )}
         </ul>
       </div>
