@@ -51,11 +51,18 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cloudReadyRef = useRef(false);
 
-  const commitState = useCallback((next: PersonaState) => {
+  const adoptState = useCallback((next: PersonaState) => {
     stateRef.current = next;
     setState(next);
-    localRepository.saveState(next);
   }, []);
+
+  const commitState = useCallback(
+    (next: PersonaState) => {
+      adoptState(next);
+      localRepository.saveState(next);
+    },
+    [adoptState]
+  );
 
   const normalizeLiveStateForCloud = useCallback(() => {
     const current = stateRef.current;
@@ -151,10 +158,12 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
     if (!isCloudMode) {
       cloudReadyRef.current = false;
-      commitState(localRepository.getState());
+      adoptState(localRepository.getState());
       setSyncStatus("local");
 
-      const handleStorage = () => commitState(localRepository.getState());
+      // A storage event already represents a write from another tab. Adopt it
+      // without writing it back, otherwise two tabs can echo the same event.
+      const handleStorage = () => adoptState(localRepository.getState());
       window.addEventListener("storage", handleStorage);
       return () => window.removeEventListener("storage", handleStorage);
     }
@@ -220,8 +229,8 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
       if (channel) void channel.unsubscribe();
     };
   }, [
+    adoptState,
     authLoading,
-    commitState,
     initializeCloud,
     isCloudMode,
     refreshFromCloud,
@@ -236,9 +245,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
           ? normalizeLegacySnapshot(rawPrevious)
           : rawPrevious;
 
-      if (previous !== rawPrevious && statesDiffer(previous, rawPrevious)) {
-        commitState(previous);
-      }
+      if (statesDiffer(previous, rawPrevious)) commitState(previous);
 
       const next = updater(previous);
       commitState(next);
