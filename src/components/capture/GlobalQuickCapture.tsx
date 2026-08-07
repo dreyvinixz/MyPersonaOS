@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePersonaState } from "@/lib/storage";
+import { createEntityId } from "@/lib/ids";
 import { QUICK_CAPTURE_OPEN_EVENT } from "@/lib/ui-events";
 import {
   ArrowRight,
@@ -84,7 +85,7 @@ export function GlobalQuickCapture() {
 
     const iso = new Date().toISOString();
     const newItem = {
-      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}`,
+      id: createEntityId(),
       content,
       type: selected,
       status: "pending" as const,
@@ -114,7 +115,6 @@ export function GlobalQuickCapture() {
 
   return (
     <>
-      {/* Mobile-first global trigger. Desktop users retain Ctrl/Cmd+K. */}
       {!open && (
         <button
           type="button"
