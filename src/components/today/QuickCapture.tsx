@@ -1,26 +1,21 @@
 "use client";
 
-import { usePersonaState } from "@/lib/storage";
-import { Zap, Inbox as InboxIcon, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { ArrowRight, Inbox as InboxIcon, Zap } from "lucide-react";
+import { usePersonaState } from "@/lib/storage";
+import { openQuickCapture } from "@/lib/ui-events";
 
 export function QuickCapture() {
   const { state, mounted } = usePersonaState();
 
   if (!mounted) return null;
 
-  const recentCaptures = state.inboxItems.filter((i) => !i.processed).slice(0, 4);
-  const unprocessedCount = state.inboxItems.filter((i) => !i.processed).length;
-
-  const openGlobalCapture = () => {
-    window.dispatchEvent(
-      new KeyboardEvent("keydown", {
-        key: "k",
-        ctrlKey: true,
-        bubbles: true,
-      })
-    );
-  };
+  const recentCaptures = state.inboxItems
+    .filter((item) => !item.processed)
+    .slice(0, 4);
+  const unprocessedCount = state.inboxItems.filter(
+    (item) => !item.processed
+  ).length;
 
   return (
     <div
@@ -34,27 +29,25 @@ export function QuickCapture() {
         <h2 className="text-sm font-semibold" style={{ color: "var(--text)" }}>
           Quick Capture
         </h2>
-        <div className="flex items-center gap-2">
-          {unprocessedCount > 0 && (
-            <Link
-              href="/inbox"
-              className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors hover:opacity-80"
-              style={{
-                background: "var(--accent-dim)",
-                color: "var(--accent)",
-              }}
-            >
-              <InboxIcon size={10} />
-              {unprocessedCount} na inbox
-            </Link>
-          )}
-        </div>
+        {unprocessedCount > 0 && (
+          <Link
+            href="/inbox"
+            className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors hover:opacity-80"
+            style={{
+              background: "var(--accent-dim)",
+              color: "var(--accent)",
+            }}
+          >
+            <InboxIcon size={10} />
+            {unprocessedCount} na inbox
+          </Link>
+        )}
       </div>
 
-      {/* Trigger for global modal */}
       <div className="p-4">
         <button
-          onClick={openGlobalCapture}
+          type="button"
+          onClick={openQuickCapture}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-150 hover:border-[var(--accent)] group"
           style={{
             borderColor: "var(--border)",
@@ -81,12 +74,11 @@ export function QuickCapture() {
               border: "1px solid var(--border)",
             }}
           >
-            Ctrl+K
+            Ctrl/⌘ K
           </kbd>
         </button>
       </div>
 
-      {/* Recent unprocessed captures */}
       {recentCaptures.length > 0 && (
         <div
           className="border-t px-4 py-3"
@@ -111,12 +103,16 @@ export function QuickCapture() {
             {recentCaptures.map((item) => (
               <li
                 key={item.id}
-                className="text-xs truncate flex items-center justify-between"
+                className="text-xs truncate flex items-center justify-between gap-2"
                 style={{ color: "var(--text-muted)" }}
               >
-                <span>· {item.content}</span>
+                <span className="truncate">· {item.content}</span>
                 <span
-                  className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-[var(--surface)] text-[var(--text-subtle)]"
+                  className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded shrink-0"
+                  style={{
+                    background: "var(--surface)",
+                    color: "var(--text-subtle)",
+                  }}
                 >
                   {item.type}
                 </span>
