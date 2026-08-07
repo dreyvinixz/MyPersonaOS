@@ -24,7 +24,7 @@ export function MainFocus() {
 
   return (
     <div
-      className="rounded-xl border p-5 transition-all shadow-sm"
+      className="oil-focus-card rounded-xl border p-5 transition-all"
       style={{
         background: "var(--card)",
         borderColor: completed ? "var(--green)" : "var(--accent)",
@@ -33,8 +33,7 @@ export function MainFocus() {
       <div className="flex items-center gap-2 mb-3">
         <Target size={16} style={{ color: "var(--accent)" }} />
         <span
-          className="text-[11px] font-bold uppercase tracking-wider"
-          style={{ color: "var(--accent)" }}
+          className="text-[11px] font-bold uppercase tracking-wider oil-gradient-text"
         >
           Foco Principal de Hoje
         </span>
