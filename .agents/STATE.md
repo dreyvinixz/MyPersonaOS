@@ -142,6 +142,13 @@ During initial bootstrap, the execution environment available to one agent could
 
 Future agents should retry normal validation in their own environment.
 
+## Open-Source & Community Directives
+
+- **Open-Source License**: Distributed under the MIT License (`LICENSE`).
+- **Public Code, Private Data**: App source code is public and open source; user data remains local or secured via private Supabase RLS policies.
+- **Environment & Secrets Guardrails**: Secrets and local environment configs (`.env.local`) are excluded by `.gitignore`. Template provided in `.env.example`.
+- **Contributor Guidelines**: Open-source contributors and AI agents follow guidelines detailed in `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `AGENTS.md`.
+
 ## Architectural guardrails
 
 - Build working vertical slices before advanced orchestration.
@@ -149,3 +156,4 @@ Future agents should retry normal validation in their own environment.
 - Avoid premature multi-user/SaaS architecture.
 - Keep domain models explicit enough to migrate from temporary local state to PostgreSQL.
 - AI should assist decisions and organization; it should not become a dependency for basic app usability.
+

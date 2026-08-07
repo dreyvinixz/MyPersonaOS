@@ -1,6 +1,6 @@
-# MyPersonaOS — AI Agent Entry Point
+# MyPersonaOS — AI Agent & Contributor Entry Point
 
-This repository is designed to be safely worked on by humans and AI agents.
+This repository is designed to be safely worked on by humans and AI agents in an open-source environment.
 
 ## Mandatory read order
 
@@ -19,6 +19,13 @@ MyPersonaOS is a **personal-first life operating system** centered on one questi
 > What deserves attention today?
 
 Prefer simple, useful workflows over feature volume. Do not turn the app into a generic productivity suite.
+
+## Open-Source & Security Directives
+
+- **Open Source License**: Distributed under the permissive MIT License ([LICENSE](file:///d:/MyPersonaOS/LICENSE)).
+- **Security & Privacy First**: NEVER commit secrets, API tokens, `.env` values, private user data, or credentials. Check `.gitignore` before adding environment files.
+- **Local-First & User-Owned Data**: MyPersonaOS is designed so users own their data (via local storage or a personal Supabase backend with Row Level Security).
+- **Public & Community Friendly**: Code quality, documentation, and agent handoffs must be clean, readable, and structured for community participation.
 
 ## Project priorities
 
@@ -51,4 +58,4 @@ A change is done when:
 - relevant validation has been attempted;
 - known limitations are documented;
 - project state/handoff docs are updated when materially affected;
-- the next agent can understand what happened without reconstructing the session.
+- the next agent or developer can understand what happened without reconstructing the session.
