@@ -14,7 +14,10 @@ import type { PersonaState, SyncStatus } from "@/types";
 import { localRepository } from "@/lib/repositories/local-repository";
 import { supabaseRepository } from "@/lib/repositories/supabase-repository";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { runLocalToCloudMigration } from "@/lib/sync/migration";
+import {
+  normalizeLegacySnapshot,
+  runLocalToCloudMigration,
+} from "@/lib/sync/migration";
 import { subscribeToPersonaRealtime } from "@/lib/sync/realtime";
 import {
   buildCloudMutations,
@@ -102,6 +105,14 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
       cloudReadyRef.current = false;
       setSyncStatus("syncing");
+
+      // Move the live in-memory state to UUIDs before the RPC starts. This closes
+      // the migration race where a user action could otherwise queue a legacy ID
+      // while V0.1 data was being converted in localStorage.
+      const normalizedLocal = normalizeLegacySnapshot(stateRef.current);
+      if (JSON.stringify(normalizedLocal) !== JSON.stringify(stateRef.current)) {
+        commitState(normalizedLocal);
+      }
 
       // Migration throws on failure. We intentionally do not fetch cloud state
       // after a failed migration, so local data can never be replaced by an
