@@ -42,6 +42,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const flushPromiseRef = useRef<Promise<void> | null>(null);
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cloudReadyRef = useRef(false);
 
   const commitState = useCallback((next: PersonaState) => {
     stateRef.current = next;
@@ -81,12 +82,12 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
         await flushQueuedMutations(userId);
       }
 
-      // Never let a remote snapshot overwrite local changes that are still queued.
       if (getPendingMutationCount(userId) > 0) return;
 
       setSyncStatus("syncing");
       const cloudState = await supabaseRepository.fetchAllState(userId);
       commitState(cloudState);
+      cloudReadyRef.current = true;
       setSyncStatus("synced");
     },
     [commitState, flushQueuedMutations]
@@ -99,6 +100,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      cloudReadyRef.current = false;
       setSyncStatus("syncing");
 
       // Migration throws on failure. We intentionally do not fetch cloud state
@@ -113,6 +115,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
       const cloudState = await supabaseRepository.fetchAllState(userId);
       commitState(cloudState);
+      cloudReadyRef.current = true;
       setSyncStatus("synced");
     },
     [commitState, flushQueuedMutations]
@@ -122,21 +125,23 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
     setMounted(true);
 
     if (authLoading) {
+      cloudReadyRef.current = false;
       setSyncStatus("initializing");
       return;
     }
 
     if (!isCloudMode) {
+      cloudReadyRef.current = false;
       commitState(localRepository.getState());
       setSyncStatus("local");
 
-      // Keep multiple browser tabs consistent in Local Mode.
       const handleStorage = () => commitState(localRepository.getState());
       window.addEventListener("storage", handleStorage);
       return () => window.removeEventListener("storage", handleStorage);
     }
 
     if (!user) {
+      cloudReadyRef.current = false;
       setSyncStatus("initializing");
       return;
     }
@@ -145,10 +150,16 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
     let channel: ReturnType<typeof subscribeToPersonaRealtime> = null;
 
     const scheduleRemoteRefresh = () => {
-      if (disposed) return;
+      if (disposed || !cloudReadyRef.current) return;
       if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
       realtimeTimerRef.current = setTimeout(() => {
-        if (disposed || getPendingMutationCount(user.id) > 0) return;
+        if (
+          disposed ||
+          !cloudReadyRef.current ||
+          getPendingMutationCount(user.id) > 0
+        ) {
+          return;
+        }
         refreshFromCloud(user.id).catch((error) => {
           console.error("Realtime refresh failed:", error);
           setSyncStatus("error");
@@ -162,6 +173,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
         if (disposed) return;
         channel = subscribeToPersonaRealtime(user.id, scheduleRemoteRefresh);
       } catch (error) {
+        cloudReadyRef.current = false;
         console.error("Cloud initialization failed; preserving local state:", error);
         setSyncStatus("error");
       }
@@ -170,6 +182,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
     const handleOffline = () => setSyncStatus("offline");
     const handleOnline = () => {
       initializeCloud(user.id).catch((error) => {
+        cloudReadyRef.current = false;
         console.error("Cloud reconnect failed:", error);
         setSyncStatus("error");
       });
@@ -181,6 +194,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       disposed = true;
+      cloudReadyRef.current = false;
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
       if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
@@ -207,7 +221,11 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
       const mutations = buildCloudMutations(previous, next, user.id);
       if (mutations.length === 0) return;
 
+      // Queue first, always. If the first migration/reconcile has not completed,
+      // these mutations remain local and cannot accidentally seed a partial cloud.
       enqueueCloudMutations(mutations);
+
+      if (!cloudReadyRef.current) return;
 
       if (typeof navigator !== "undefined" && !navigator.onLine) {
         setSyncStatus("offline");
