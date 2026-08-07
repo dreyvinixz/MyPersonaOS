@@ -166,32 +166,9 @@ export function savePersonaState(state: PersonaState): void {
   }
 }
 
+import { usePersonaStore } from "@/stores/persona-store";
+
 export function usePersonaState() {
-  const [state, setState] = useState<PersonaState>(INITIAL_STATE);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setState(getPersonaState());
-    setMounted(true);
-
-    const handleUpdate = () => {
-      setState(getPersonaState());
-    };
-
-    window.addEventListener(STORAGE_EVENT, handleUpdate);
-    window.addEventListener("storage", handleUpdate);
-
-    return () => {
-      window.removeEventListener(STORAGE_EVENT, handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
-    };
-  }, []);
-
-  const updateState = (updater: (prev: PersonaState) => PersonaState) => {
-    const next = updater(state);
-    setState(next);
-    savePersonaState(next);
-  };
-
-  return { state, updateState, mounted };
+  const { state, updateState, syncStatus, mounted } = usePersonaStore();
+  return { state, updateState, syncStatus, mounted };
 }
