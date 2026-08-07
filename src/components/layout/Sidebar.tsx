@@ -34,7 +34,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className="flex flex-col w-[60px] lg:w-[220px] h-screen border-r shrink-0 transition-all duration-300 select-none"
+      className="flex flex-col w-[60px] lg:w-[220px] h-screen border-r shrink-0 transition-all duration-300 select-none backdrop-blur-2xl"
       style={{
         background: "var(--surface)",
         borderColor: "var(--border)",
@@ -45,8 +45,8 @@ export function Sidebar() {
         style={{ borderColor: "var(--border)" }}
       >
         <div
-          className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 shadow-sm"
-          style={{ background: "var(--accent)", color: "#fff" }}
+          className="oil-logo flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
+          style={{ color: "#fff" }}
         >
           <Zap size={16} strokeWidth={2.5} />
         </div>
@@ -66,14 +66,15 @@ export function Sidebar() {
           style={{
             color: "var(--text-subtle)",
             border: "1px solid var(--border-subtle)",
+            background: "rgba(255,255,255,0.015)",
           }}
         >
-          <Zap size={12} />
+          <Zap size={12} style={{ color: "var(--cyan)" }} />
           <span className="flex-1 text-left">Quick Capture</span>
           <kbd
             className="font-mono text-[10px] px-1.5 py-0.5 rounded"
             style={{
-              background: "var(--bg)",
+              background: "rgba(5,6,10,0.72)",
               border: "1px solid var(--border)",
             }}
           >
@@ -93,13 +94,14 @@ export function Sidebar() {
               href={href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
-                active ? "text-white" : "hover:opacity-80"
+                active ? "text-white" : "hover:opacity-90"
               )}
               style={
                 active
                   ? {
                       background: "var(--accent-dim)",
                       color: "var(--accent-hover)",
+                      boxShadow: "inset 0 0 0 1px rgba(196,181,253,0.08)",
                     }
                   : {
                       color: "var(--text-muted)",
@@ -112,8 +114,9 @@ export function Sidebar() {
                   <span
                     className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
                     style={{
-                      background: "var(--accent)",
+                      background: "var(--magenta)",
                       color: "#fff",
+                      boxShadow: "0 0 14px rgba(236,72,153,0.3)",
                     }}
                   >
                     {inboxCount > 9 ? "9+" : inboxCount}
@@ -124,7 +127,7 @@ export function Sidebar() {
               {active && (
                 <span
                   className="hidden lg:block ml-auto w-1.5 h-1.5 rounded-full"
-                  style={{ background: "var(--accent)" }}
+                  style={{ background: "var(--cyan)" }}
                 />
               )}
             </Link>
@@ -136,10 +139,7 @@ export function Sidebar() {
         className="p-4 border-t hidden lg:block"
         style={{ borderColor: "var(--border)" }}
       >
-        <p
-          className="text-[10px] font-mono tracking-wider"
-          style={{ color: "var(--text-subtle)" }}
-        >
+        <p className="text-[10px] font-mono tracking-wider oil-gradient-text">
           why not today?
         </p>
       </div>
