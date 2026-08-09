@@ -10,6 +10,63 @@ import type {
 
 type SupabaseErrorLike = { message?: string; code?: string } | null;
 
+type TaskRow = {
+  id: string;
+  title: string;
+  status: Task["status"];
+  priority: NonNullable<Task["priority"]>;
+  is_today: boolean;
+  due_date: string | null;
+  project_id: string | null;
+  created_at: string;
+  completed_at: string | null;
+  updated_at: string;
+};
+
+type ProjectRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  progress: number;
+  deadline: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type InboxItemRow = {
+  id: string;
+  content: string;
+  type: InboxItem["type"];
+  status: InboxItem["status"];
+  converted_to_type: InboxItem["convertedToType"] | null;
+  converted_to_id: string | null;
+  created_at: string;
+  processed_at: string | null;
+  updated_at: string;
+};
+
+type ContentPieceRow = {
+  id: string;
+  title: string;
+  brand: ContentPiece["brand"];
+  stage: ContentPiece["stage"];
+  platforms: string[] | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type EnglishWordRow = {
+  id: string;
+  term: string;
+  definition: string;
+  example: string | null;
+  mastery_level: number;
+  last_reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 function assertNoError(error: SupabaseErrorLike, context: string): void {
   if (!error) return;
   const suffix = error.code ? ` (${error.code})` : "";
@@ -63,7 +120,7 @@ export class SupabaseRepository {
     assertNoError(englishRes.error, "Failed to fetch English words");
     assertNoError(profileRes.error, "Failed to fetch user profile");
 
-    const tasks: Task[] = (tasksRes.data || []).map((task) => ({
+    const tasks: Task[] = (tasksRes.data || []).map((task: TaskRow) => ({
       id: task.id,
       title: task.title,
       status: task.status,
@@ -76,50 +133,58 @@ export class SupabaseRepository {
       updatedAt: task.updated_at,
     }));
 
-    const projects: Project[] = (projectsRes.data || []).map((project) => ({
-      id: project.id,
-      name: project.name,
-      description: project.description ?? undefined,
-      progress: project.progress,
-      deadline: project.deadline ?? undefined,
-      tasks: tasks.filter((task) => task.projectId === project.id),
-      createdAt: project.created_at,
-      updatedAt: project.updated_at,
-    }));
+    const projects: Project[] = (projectsRes.data || []).map(
+      (project: ProjectRow) => ({
+        id: project.id,
+        name: project.name,
+        description: project.description ?? undefined,
+        progress: project.progress,
+        deadline: project.deadline ?? undefined,
+        tasks: tasks.filter((task) => task.projectId === project.id),
+        createdAt: project.created_at,
+        updatedAt: project.updated_at,
+      })
+    );
 
-    const inboxItems: InboxItem[] = (inboxRes.data || []).map((item) => ({
-      id: item.id,
-      content: item.content,
-      type: item.type,
-      status: item.status,
-      convertedToType: item.converted_to_type ?? undefined,
-      convertedToId: item.converted_to_id ?? undefined,
-      createdAt: item.created_at,
-      processedAt: item.processed_at ?? undefined,
-      updatedAt: item.updated_at,
-    }));
+    const inboxItems: InboxItem[] = (inboxRes.data || []).map(
+      (item: InboxItemRow) => ({
+        id: item.id,
+        content: item.content,
+        type: item.type,
+        status: item.status,
+        convertedToType: item.converted_to_type ?? undefined,
+        convertedToId: item.converted_to_id ?? undefined,
+        createdAt: item.created_at,
+        processedAt: item.processed_at ?? undefined,
+        updatedAt: item.updated_at,
+      })
+    );
 
-    const contentPieces: ContentPiece[] = (contentRes.data || []).map((content) => ({
-      id: content.id,
-      title: content.title,
-      brand: content.brand,
-      stage: content.stage,
-      platforms: content.platforms || [],
-      notes: content.notes ?? undefined,
-      createdAt: content.created_at,
-      updatedAt: content.updated_at,
-    }));
+    const contentPieces: ContentPiece[] = (contentRes.data || []).map(
+      (content: ContentPieceRow) => ({
+        id: content.id,
+        title: content.title,
+        brand: content.brand,
+        stage: content.stage,
+        platforms: content.platforms || [],
+        notes: content.notes ?? undefined,
+        createdAt: content.created_at,
+        updatedAt: content.updated_at,
+      })
+    );
 
-    const englishWords: EnglishWord[] = (englishRes.data || []).map((word) => ({
-      id: word.id,
-      term: word.term,
-      definition: word.definition,
-      example: word.example ?? undefined,
-      masteryLevel: word.mastery_level,
-      lastReviewedAt: word.last_reviewed_at ?? undefined,
-      createdAt: word.created_at,
-      updatedAt: word.updated_at,
-    }));
+    const englishWords: EnglishWord[] = (englishRes.data || []).map(
+      (word: EnglishWordRow) => ({
+        id: word.id,
+        term: word.term,
+        definition: word.definition,
+        example: word.example ?? undefined,
+        masteryLevel: word.mastery_level,
+        lastReviewedAt: word.last_reviewed_at ?? undefined,
+        createdAt: word.created_at,
+        updatedAt: word.updated_at,
+      })
+    );
 
     const mainFocus =
       ((profileRes.data?.settings as Record<string, unknown> | null)?.mainFocus as

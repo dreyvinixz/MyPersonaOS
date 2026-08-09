@@ -11,8 +11,6 @@ import {
   BookOpen,
   Zap,
   LogOut,
-  Wifi,
-  CloudCheck,
   RefreshCw,
   HardDrive,
   AlertTriangle,

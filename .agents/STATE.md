@@ -26,7 +26,7 @@ English loop direction:
 
 ## Technical foundation
 
-- Next.js 15 + App Router
+- Next.js 16.3 + App Router + Turbopack production build
 - React 19
 - TypeScript
 - Tailwind CSS
@@ -113,7 +113,7 @@ Implemented:
 - Inbox conversion/archive/delete flow;
 - Tasks/Projects/Content/English initial domain pages;
 - Oil Slick design system;
-- private Auth UI + middleware;
+- private Auth UI + Next.js `proxy.ts` auth boundary;
 - shared PersonaProvider;
 - LocalRepository + SupabaseRepository;
 - durable diff-based cloud outbox including deletes;
@@ -121,11 +121,21 @@ Implemented:
 - centralized debounced Realtime synchronization;
 - sync UI states: `initializing`, `local`, `syncing`, `synced`, `offline`, `error`;
 - GitHub Actions typecheck/build workflow;
+- ESLint 9 flat configuration with Next.js and strict React Hooks rules;
+- dependency security baseline at zero known `npm audit` vulnerabilities as of 2026-08-09;
 - detailed V0.2 release validation checklist at `docs/v0.2-supabase-validation.md`.
+- canonical milestone/task tracking in `ROADMAP.md`.
+
+### Local release checks — 2026-08-09
+
+- `npm ci --cache /tmp/...` — passed;
+- `npm audit --audit-level=moderate` — passed, zero known vulnerabilities;
+- `npx tsc --noEmit` — passed;
+- `npm run lint` — passed;
+- `npm run build` — passed on Next.js 16.3.0, 9/9 static pages generated.
 
 ### Not yet proven / still requires release validation
 
-- fresh typecheck/build on the **post-audit** head;
 - migrations applied against a real clean Supabase test project;
 - RLS A/B-user isolation test;
 - real V0.1 browser snapshot migration test;
@@ -156,9 +166,9 @@ The product is personal/single-owner for now.
 
 ### V0.2 — Supabase Persistence, RLS & Private Multi-Device Sync
 
-**Engineering status:** `REVIEW_FIXES_APPLIED_VALIDATION_PENDING`
+**Engineering status:** `LOCAL_RELEASE_CHECKS_PASSED_CLOUD_VALIDATION_PENDING`
 
-The release-gate audit found and directly corrected data-loss, synchronization, deletion, migration, Realtime, and auth-shell issues. Do not merge/tag V0.2 until the final validation checklist passes.
+The release-gate audit found and directly corrected data-loss, synchronization, deletion, migration, Realtime, auth-shell, lint, React lifecycle, and dependency-security issues. Local automated checks now pass. Do not merge/tag V0.2 until the configured-Supabase validation checklist passes.
 
 ## Current Git workflow
 

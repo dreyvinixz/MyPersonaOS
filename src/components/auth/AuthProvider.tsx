@@ -8,7 +8,12 @@ import {
   useCallback,
 } from "react";
 import { useRouter } from "next/navigation";
-import type { User, Session } from "@supabase/supabase-js";
+import type {
+  AuthChangeEvent,
+  AuthError,
+  Session,
+  User,
+} from "@supabase/supabase-js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 type AuthContextType = {
@@ -27,35 +32,41 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 });
 
+type SessionResult = {
+  data: { session: Session | null };
+  error: AuthError | null;
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const isCloudMode = isSupabaseConfigured();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const isCloudMode = isSupabaseConfigured();
+  const [loading, setLoading] = useState(isCloudMode);
   const router = useRouter();
 
   useEffect(() => {
-    if (!isCloudMode) {
-      setLoading(false);
-      return;
-    }
+    if (!isCloudMode) return;
 
     const supabase = createClient();
 
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) console.error("Failed to restore auth session:", error);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session }, error }: SessionResult) => {
+        if (error) console.error("Failed to restore auth session:", error);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-      setLoading(false);
-    });
+    } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, nextSession: Session | null) => {
+        setSession(nextSession);
+        setUser(nextSession?.user ?? null);
+        setLoading(false);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, [isCloudMode]);

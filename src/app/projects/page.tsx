@@ -1,7 +1,7 @@
 "use client";
 
 import { usePersonaState } from "@/lib/storage";
-import { Folder, Plus } from "lucide-react";
+import { Folder } from "lucide-react";
 
 export default function ProjectsPage() {
   const { state, mounted } = usePersonaState();

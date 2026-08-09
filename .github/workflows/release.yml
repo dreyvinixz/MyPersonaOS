@@ -33,8 +33,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify build & typecheck
+      - name: Verify audit, lint, typecheck & build
         run: |
+          npm audit --audit-level=moderate
+          npm run lint
           npx tsc --noEmit
           npm run build
 
@@ -55,11 +57,11 @@ jobs:
           ### 🌟 What's Included
 
           * **Today Command Center:** Daily focus header, live DateClock, priority tasks checklist, and module summary cards.
-          * **Quick Capture & Inbox:** Zero-friction input buffer supporting text, links, audio notes, and images.
+          * **Quick Capture & Inbox:** Zero-friction text/link input buffer with Inbox processing; audio and image capture remain planned.
           * **Tasks & Projects:** Goal-aligned task hierarchy (\`Goals → Projects → Tasks → Today\`) with interactive state.
           * **Content Studio:** Multi-brand content pipeline supporting **CodeToday** (programming), **Personal** (tech/philosophy), and **Quant Base** (institutional finance).
           * **English Lab:** Spaced-repetition vocabulary acquisition framework tracking active mastery levels (1-5).
-          * **Reactive Storage:** Client-side \`localStorage\` state management (\`usePersonaState\`) with real-time UI synchronization.
+          * **Reactive Storage:** Local-first state with private Supabase persistence, offline outbox, RLS, and Realtime sync when Cloud Mode is configured.
           * **CI/CD & Diagnostics:** Automated GitHub Actions build verification and error log artifact capture.
 
           ---
@@ -94,8 +96,8 @@ jobs:
           * **Build Date:** $DATE
           * **Version Tag:** $TAG
           * **Node.js Environment:** v20.x
-          * **Framework:** Next.js 15 (App Router, React 19)
-          * **Status:** Passed TypeScript typecheck (\`npx tsc --noEmit\`) & Next.js production build (\`npm run build\`)
+          * **Framework:** Next.js 16 (App Router, React 19)
+          * **Status:** Passed dependency audit, ESLint, TypeScript typecheck, and Next.js production build
           * **License:** [MIT License](https://github.com/dreyvinixz/MyPersonaOS/blob/main/LICENSE)
 
           ---

@@ -6,12 +6,12 @@ This page outlines the technical architecture, data model, technology stack, and
 
 ## 🏛️ Architecture Overview
 
-MyPersonaOS is structured as a client-first, PWA-ready Next.js 15 application using the React 19 App Router architecture.
+MyPersonaOS is structured as a client-first, PWA-ready Next.js 16 application using the React 19 App Router architecture.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                   User Interface (PWA UI)                   │
-│   Next.js 15 (App Router) + React 19 + Tailwind CSS v3      │
+│   Next.js 16 (App Router) + React 19 + Tailwind CSS v3      │
 ├─────────────────────────────────────────────────────────────┤
 │  Today Dashboard │ Inbox │ Projects │ Content │ English Lab │
 └──────────────────────────────┬──────────────────────────────┘
@@ -30,7 +30,7 @@ MyPersonaOS is structured as a client-first, PWA-ready Next.js 15 application us
 
 | Layer | Technology | Purpose |
 | :--- | :--- | :--- |
-| **Framework** | Next.js 15 (App Router) | Server-side rendering, React Server Components, client navigation |
+| **Framework** | Next.js 16 (App Router) | Server-side rendering, React Server Components, client navigation |
 | **Language** | TypeScript 5 | Strict static typing across domain models |
 | **Styling** | Tailwind CSS v3 | Custom dark mode palette (`--bg: #09090E`, `--accent: #7B68EE`) |
 | **Icons** | Lucide React | Modern, lightweight UI iconography |

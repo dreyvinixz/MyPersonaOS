@@ -2,13 +2,13 @@
 
 import {
   createContext,
-  createElement,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import type { PersonaState, SyncStatus } from "@/types";
 import { localRepository } from "@/lib/repositories/local-repository";
@@ -39,14 +39,24 @@ function statesDiffer(left: PersonaState, right: PersonaState): boolean {
   return JSON.stringify(left) !== JSON.stringify(right);
 }
 
+const subscribeToHydration = () => () => {};
+const getClientHydrationSnapshot = () => true;
+const getServerHydrationSnapshot = () => false;
+
 export function PersonaProvider({ children }: { children: React.ReactNode }) {
   const { user, isCloudMode, loading: authLoading } = useAuth();
-  const initialStateRef = useRef<PersonaState>(localRepository.getState());
-
-  const [state, setState] = useState<PersonaState>(initialStateRef.current);
+  const [state, setState] = useState<PersonaState>(() =>
+    localRepository.getState()
+  );
   const stateRef = useRef(state);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>("initializing");
-  const [mounted, setMounted] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(() =>
+    isCloudMode ? "initializing" : "local"
+  );
+  const mounted = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot
+  );
   const flushPromiseRef = useRef<Promise<void> | null>(null);
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cloudReadyRef = useRef(false);
@@ -148,29 +158,30 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-    setMounted(true);
-
     if (authLoading) {
       cloudReadyRef.current = false;
-      setSyncStatus("initializing");
       return;
     }
 
     if (!isCloudMode) {
       cloudReadyRef.current = false;
-      adoptState(localRepository.getState());
-      setSyncStatus("local");
 
       // A storage event already represents a write from another tab. Adopt it
       // without writing it back, otherwise two tabs can echo the same event.
-      const handleStorage = () => adoptState(localRepository.getState());
+      let active = true;
+      const handleStorage = () => {
+        if (active) adoptState(localRepository.getState());
+      };
+      queueMicrotask(handleStorage);
       window.addEventListener("storage", handleStorage);
-      return () => window.removeEventListener("storage", handleStorage);
+      return () => {
+        active = false;
+        window.removeEventListener("storage", handleStorage);
+      };
     }
 
     if (!user) {
       cloudReadyRef.current = false;
-      setSyncStatus("initializing");
       return;
     }
 
@@ -274,12 +285,19 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
     [commitState, flushQueuedMutations, isCloudMode, user]
   );
 
+  const visibleSyncStatus: SyncStatus =
+    authLoading || (isCloudMode && !user) ? "initializing" : syncStatus;
+
   const value = useMemo<PersonaStoreValue>(
-    () => ({ state, updateState, syncStatus, mounted }),
-    [mounted, state, syncStatus, updateState]
+    () => ({ state, updateState, syncStatus: visibleSyncStatus, mounted }),
+    [mounted, state, updateState, visibleSyncStatus]
   );
 
-  return createElement(PersonaStoreContext.Provider, { value }, children);
+  return (
+    <PersonaStoreContext.Provider value={value}>
+      {children}
+    </PersonaStoreContext.Provider>
+  );
 }
 
 export function usePersonaStore(): PersonaStoreValue {

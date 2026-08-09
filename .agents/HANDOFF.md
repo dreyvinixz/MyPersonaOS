@@ -50,6 +50,20 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
   9. Standardized new cloud-compatible entity IDs through `crypto.randomUUID()`.
   10. Added `docs/v0.2-supabase-validation.md` with the real release validation procedure.
 
+### 🤖 Agent: Codex (OpenAI)
+* **Date / Session**: 2026-08-09
+* **Branch(es)**: `agent/supabase-persistence`
+* **Role**: validation loop, framework security upgrade, lint recovery, and roadmap handoff.
+* **Contributions Completed**:
+  1. Ran a fresh clean dependency install and the complete local validation ladder.
+  2. Fixed nine strict TypeScript failures in Supabase Auth and repository row mapping.
+  3. Added a working ESLint 9 flat configuration and fixed all surfaced errors/warnings.
+  4. Upgraded Next.js and `eslint-config-next` from 15.4.6 to 16.3.0 after `npm audit` reported one critical and two high vulnerable dependency paths.
+  5. Migrated the deprecated `middleware.ts` convention to the Next.js 16 `proxy.ts` convention.
+  6. Reworked Auth, Quick Capture, and Persona hydration lifecycle code to satisfy strict React Hooks rules without disabling them.
+  7. Added `ROADMAP.md` as the canonical milestone and task-level tracker.
+  8. Updated README and durable project state to distinguish locally validated engineering from real Supabase validation.
+
 ---
 
 ## Current Handoff — `agent/supabase-persistence`
@@ -60,11 +74,11 @@ V0.2 Supabase Persistence + Private Auth + reliable single-owner multi-device sy
 
 ### Status
 
-`REVIEW_FIXES_APPLIED_VALIDATION_PENDING`
+`LOCAL_RELEASE_CHECKS_PASSED_CLOUD_VALIDATION_PENDING`
 
 **Do not merge or tag `v0.2.0` yet.**
 
-The original V0.2 implementation passed TypeScript/build before the release-gate review, but substantial persistence/auth changes were made afterward. The final reviewed head therefore needs a fresh clean typecheck/build plus a configured-Supabase validation pass.
+The post-audit head now passes clean local installation, dependency audit, TypeScript, lint, and production build. The remaining release gate is the configured-Supabase validation pass; those database, RLS, migration, offline, Realtime, and multi-device flows cannot be proven by a Local Mode build.
 
 ### Release blockers resolved in code
 
@@ -85,13 +99,19 @@ The original V0.2 implementation passed TypeScript/build before the release-gate
 
 Follow `docs/v0.2-supabase-validation.md`.
 
-At minimum:
+Local checks completed on 2026-08-09:
 
 ```bash
-npm ci
-npx tsc --noEmit
-npm run build
+npm ci                               # passed
+npm audit --audit-level=moderate     # passed: 0 vulnerabilities
+npx tsc --noEmit                     # passed
+npm run lint                         # passed
+npm run build                        # passed: Next.js 16.3.0, 9/9 pages
 ```
+
+One repeated local build hit a corrupted generated `.next` Turbopack cache and
+passed after that cache was isolated and regenerated. The final clean-cache build
+passed; no source change was needed for that environmental failure.
 
 Then, against an actual configured Supabase test project:
 
@@ -113,7 +133,12 @@ Then, against an actual configured Supabase test project:
 
 ### Next best action
 
-1. Run the fresh branch typecheck/build.
-2. Perform the Supabase validation checklist on a test project.
-3. Fix any failures found by that real validation.
-4. Only then open/review the merge path into `main` and create `v0.2.0`.
+Perform the configured-Supabase validation checklist on a clean private test project and record evidence for `V02-01` through `V02-08` in `ROADMAP.md` before opening the merge path.
+
+### Remaining tasks
+
+1. Apply both migrations to the test project and inspect RLS/RPC/Realtime configuration.
+2. Run the A/B-user isolation and V0.1 snapshot migration tests.
+3. Run offline reload/reconnect and PC ↔ mobile Realtime tests.
+4. Validate auth privacy and the production Vercel deployment.
+5. Fix any real-environment failures, then request owner review before merge/tag.

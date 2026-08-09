@@ -10,7 +10,7 @@ function redirectPreservingCookies(
   return response;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -52,7 +52,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError) {
-    console.error("Supabase middleware session verification failed:", authError.message);
+    console.error("Supabase proxy session verification failed:", authError.message);
   }
 
   if ((!user || authError) && !isLoginPage) {
