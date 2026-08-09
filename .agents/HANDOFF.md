@@ -52,8 +52,8 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
 
 ### 🤖 Agent: Codex (OpenAI)
 * **Date / Session**: 2026-08-09
-* **Branch(es)**: `agent/supabase-persistence`
-* **Role**: validation loop, framework security upgrade, lint recovery, and roadmap handoff.
+* **Branch(es)**: `agent/supabase-persistence` → `agent/security-performance-audit`
+* **Role**: validation loop, framework/security hardening, performance audit, and roadmap handoff.
 * **Contributions Completed**:
   1. Ran a fresh clean dependency install and the complete local validation ladder.
   2. Fixed nine strict TypeScript failures in Supabase Auth and repository row mapping.
@@ -63,22 +63,31 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
   6. Reworked Auth, Quick Capture, and Persona hydration lifecycle code to satisfy strict React Hooks rules without disabling them.
   7. Added `ROADMAP.md` as the canonical milestone and task-level tracker.
   8. Updated README and durable project state to distinguish locally validated engineering from real Supabase validation.
+  9. Audited the current tree and 109-commit history for credentials, hardcoded personal data, SQL injection, unsafe browser sinks, RLS/RPC weaknesses, and supply-chain risks.
+  10. Added user-scoped Cloud cache privacy, browser security headers, bounded inputs, a third database hardening migration, CI secret/signature gates, full-SHA Action pins, and safe release input handling.
+  11. Reduced Project↔Task assembly from `O(P×T)` to `O(P+T)` and outbox storage processing from `O(M²)` to `O(M)`.
+  12. Generated the 36-module/69-edge code graph, verified zero cycles, and began maintainability decomposition with Inbox.
+  13. Added `docs/audits/security-performance-audit-2026-08-09.md` with evidence, residual risks, and the next hardening queue.
 
 ---
 
-## Current Handoff — `agent/supabase-persistence`
+## Current Handoff — `agent/security-performance-audit`
 
 ### Mission
 
-V0.2 Supabase Persistence + Private Auth + reliable single-owner multi-device synchronization.
+V0.2 security/performance hardening on top of Supabase Persistence + Private Auth.
 
 ### Status
 
-`LOCAL_RELEASE_CHECKS_PASSED_CLOUD_VALIDATION_PENDING`
+`READY_FOR_REVIEW / CLOUD_VALIDATION_PENDING`
 
 **Do not merge or tag `v0.2.0` yet.**
 
-The post-audit head now passes clean local installation, dependency audit, TypeScript, lint, and production build. The remaining release gate is the configured-Supabase validation pass; those database, RLS, migration, offline, Realtime, and multi-device flows cannot be proven by a Local Mode build.
+The source audit and first remediation pass are complete. Clean installation,
+dependency vulnerability/signature checks, secret scan, TypeScript, lint, build,
+security-header smoke test, dependency graph, and complexity analysis pass. V0.2
+still requires the configured-Supabase validation pass; database, RLS, Auth,
+migration, offline, Realtime, and multi-device behavior cannot be proven by Local Mode.
 
 ### Release blockers resolved in code
 
@@ -94,6 +103,10 @@ The post-audit head now passes clean local installation, dependency audit, TypeS
 - `ContentPiece.platforms` survives Local → Cloud → Local round trips.
 - `import_local_snapshot` has SECURITY DEFINER hardening.
 - Login/logout shell privacy issues are addressed.
+- Cloud browser cache is scoped to the authenticated user and rendering waits for a matching scope.
+- New profiles no longer import hardcoded demo/personal content.
+- Browser security headers, input/database limits, RPC timeout, secret scanning, dependency signatures, Action SHA pins, and safe release input handling are present.
+- Project/task assembly is `O(P+T)` and outbox storage work is `O(M)`.
 
 ### Required validation before merge
 
@@ -104,9 +117,13 @@ Local checks completed on 2026-08-09:
 ```bash
 npm ci                               # passed
 npm audit --audit-level=moderate     # passed: 0 vulnerabilities
+npm audit signatures                # passed: 407 signed, 92 attested
+npm run security:scan               # passed
 npx tsc --noEmit                     # passed
 npm run lint                         # passed
 npm run build                        # passed: Next.js 16.3.0, 9/9 pages
+Madge graph                         # passed: 36 modules, 69 edges, 0 cycles
+security-header smoke test          # passed on 127.0.0.1
 ```
 
 One repeated local build hit a corrupted generated `.next` Turbopack cache and
@@ -115,7 +132,7 @@ passed; no source change was needed for that environmental failure.
 
 Then, against an actual configured Supabase test project:
 
-1. apply both V0.2 migrations;
+1. apply all three V0.2 migrations;
 2. disable public sign-up and create the owner account;
 3. verify RLS isolation with a temporary second test user;
 4. migrate a real V0.1-style local snapshot containing IDs such as `1`, `p1`, `i1`;
@@ -127,18 +144,20 @@ Then, against an actual configured Supabase test project:
 ### Known V0.2 boundary
 
 - Browser cache/outbox are not encrypted at rest; the current threat model is a trusted personal device/browser profile.
+- CSP still permits inline scripts/styles for current Next.js compatibility; evaluate nonces/hashes after production validation.
 - Multi-device conflicts use last-write-wins semantics; collaborative field-level conflict resolution is out of scope.
 - Product remains private/single-owner. Multi-user SaaS behavior is not a V0.2 goal.
 - Public sign-up must be disabled in Supabase Authentication settings; source code cannot enforce that dashboard setting by itself.
 
 ### Next best action
 
-Perform the configured-Supabase validation checklist on a clean private test project and record evidence for `V02-01` through `V02-08` in `ROADMAP.md` before opening the merge path.
+Apply all three migrations to a clean private Supabase test project, then run the A/B-user isolation and different-account cache-scope tests first.
 
 ### Remaining tasks
 
-1. Apply both migrations to the test project and inspect RLS/RPC/Realtime configuration.
+1. Apply all three migrations to the test project and inspect RLS/RPC/Realtime configuration.
 2. Run the A/B-user isolation and V0.1 snapshot migration tests.
 3. Run offline reload/reconnect and PC ↔ mobile Realtime tests.
 4. Validate auth privacy and the production Vercel deployment.
 5. Fix any real-environment failures, then request owner review before merge/tag.
+6. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md`, beginning with runtime snapshot validation and splitting `PersonaProvider`.

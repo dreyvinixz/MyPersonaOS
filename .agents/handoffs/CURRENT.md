@@ -1,66 +1,67 @@
 # Current Handoff
 
-_Last updated: 2026-08-07_
+_Last updated: 2026-08-09_
 
 ### Mission
 
-Bootstrap MyPersonaOS as a personal-first life operating system and establish durable AI collaboration conventions so another agent can safely continue development without prior chat context.
+Audit and harden V0.2 for secrets, hardcoded personal data, common web/database attacks, supply-chain risks, algorithmic performance, code graph health, and maintainability.
 
 ### Status
 
-`IN_PROGRESS`
+`READY_FOR_REVIEW / CLOUD_VALIDATION_PENDING`
 
 ### What changed
 
-- Initialized the Next.js/TypeScript/Tailwind project foundation.
-- Added the first `Today` dashboard UI.
-- Established product direction for Today, Content, English, Projects, mobile/PWA, and future persistence.
-- Added root `AGENTS.md` discovery entrypoint.
-- Added `.agents/` onboarding, durable state, handoff protocol, and reusable skills bank.
+- Added `docs/audits/security-performance-audit-2026-08-09.md`.
+- Added user-scoped Cloud cache/privacy gating and removed hardcoded seed data.
+- Added security headers, bounded UI/SQL data, and import timeout.
+- Added secret/signature CI gates, full-SHA Action pins, and safe release inputs.
+- Reduced Project↔Task `O(P×T)` to `O(P+T)` and outbox `O(M²)` to `O(M)`.
+- Verified a 36-module/69-edge graph with zero cycles and split Inbox concerns.
 
 ### Decisions made
 
-- `Today` remains the central command surface.
-- Product is personal-only for now; public SaaS/multi-user behavior is out of scope unless explicitly requested.
-- PWA/web-first before separate native applications.
-- Supabase is the planned persistence/auth layer, but should not be treated as already implemented.
-- Build vertical working flows before advanced AI orchestration.
-- Content should use master ideas with platform derivatives.
-- The English method should be versionable and evolve from actual usage.
+- Not every path can be `O(1)`; serialization/rendering/transfers have linear lower bounds.
+- Cache scope must match the authenticated user before private UI renders.
+- Browser storage remains plaintext under the trusted-device threat model.
+- V0.2 cannot merge/tag until real Supabase validation succeeds.
 
 ### Validation performed
 
 ```text
-Initial npm build attempt -> blocked in the agent execution environment because its internal npm registry did not expose required standard packages.
-GitHub repository writes -> successful.
-Runtime application build -> not validated yet.
+npm audit -> passed, 0 vulnerabilities
+npm audit signatures -> passed, 407 signed / 92 attested
+npm run security:scan -> passed
+npx tsc --noEmit -> passed
+npm run lint -> passed
+npm run build -> passed, 9/9 static pages
+Madge -> 36 modules, 69 edges, 0 cycles
+security headers -> passed with production server on 127.0.0.1
+real Supabase validation -> not run: private test project required
 ```
 
 ### Known issues / risks
 
-- Current UI foundation has not yet been proven with a successful clean build in a normal npm environment.
-- Core workflows are mostly foundation/intent, not complete production functionality.
-- Supabase/Auth/RLS/cross-device persistence are not implemented yet.
-- PWA installability is not yet complete.
+- Third migration and RLS/Auth/Realtime behavior are not proven against real Supabase.
+- Public signup/rate limits are dashboard controls and remain unverified.
+- Browser cache/outbox are not encrypted at rest.
+- CSP retains inline allowances for Next.js compatibility.
+- PersonaProvider, SupabaseRepository, GlobalQuickCapture, Login, Sidebar, and TodayTasks remain large maintenance hotspots.
 
 ### Next best action
 
-Implement **Quick Capture → Inbox** as the first working vertical slice, initially using a clearly replaceable local model or directly with Supabase if the environment is ready.
+Apply all three migrations to a clean private Supabase project and run A/B-user RLS plus different-account cache-scope validation first.
 
 ### Remaining tasks
 
-- [ ] validate clean install/typecheck/lint/build in a normal environment;
-- [ ] implement functional Quick Capture;
-- [ ] implement Inbox;
-- [ ] implement Today task persistence;
-- [ ] implement Projects CRUD;
-- [ ] implement Content Studio workflow;
-- [ ] implement English Lab sessions;
-- [ ] add private Supabase auth/database/RLS;
-- [ ] add cross-device sync;
-- [ ] finish PWA installability;
-- [ ] deploy production environment.
+- [ ] validate the third migration and all RLS/RPC/Auth controls;
+- [ ] test offline reload/reconnect and cross-device Realtime;
+- [ ] add runtime LocalStorage/outbox schema validation;
+- [ ] split PersonaProvider into testable services;
+- [ ] replace full-state Realtime refresh with incremental reconciliation;
+- [ ] add browser security/performance regression tests;
+- [ ] deploy and validate production before merge/tag.
 
 ### Context worth preserving
 
-The system exists to improve real daily execution. Avoid spending months building the organizer instead of using it. Each milestone should become useful as early as possible.
+The detailed finding matrix, complexity table, graph, benchmark, and residual risks live in `docs/audits/security-performance-audit-2026-08-09.md`; next task IDs live in `ROADMAP.md`.

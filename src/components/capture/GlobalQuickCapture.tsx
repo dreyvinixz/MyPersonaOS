@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePersonaState } from "@/lib/storage";
 import { createEntityId } from "@/lib/ids";
 import { QUICK_CAPTURE_OPEN_EVENT } from "@/lib/ui-events";
+import { PERSONA_INPUT_LIMITS } from "@/lib/persona-state";
 import {
   ArrowRight,
   Image,
@@ -249,6 +250,7 @@ export function GlobalQuickCapture() {
               <textarea
                 ref={inputRef}
                 value={value}
+                maxLength={PERSONA_INPUT_LIMITS.inboxContent}
                 onChange={(event) => setValue(event.target.value)}
                 onKeyDown={handleTextareaKeyDown}
                 placeholder={

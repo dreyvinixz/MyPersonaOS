@@ -31,7 +31,7 @@ export default function LoginPage() {
       });
 
       if (signInError) {
-        setError(signInError.message || "Email ou senha incorretos.");
+        setError("Não foi possível autenticar com as credenciais informadas.");
         return;
       }
 
@@ -132,6 +132,9 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  maxLength={320}
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
@@ -156,6 +159,7 @@ export default function LoginPage() {
                   id="password"
                   type="password"
                   autoComplete="current-password"
+                  maxLength={1024}
                   required
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}

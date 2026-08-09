@@ -46,6 +46,10 @@ Current status: `LOCAL_RELEASE_CHECKS_PASSED_CLOUD_VALIDATION_PENDING`
 - [x] Next.js 16.3 security upgrade and `proxy.ts` auth boundary migration.
 - [x] ESLint 9 flat configuration and strict React Hooks rules.
 - [x] Clean dependency audit, TypeScript check, lint, and production build.
+- [x] Source/history secret audit and an automated CI secret gate.
+- [x] Browser security headers, user-scoped Cloud cache, and bounded inputs.
+- [x] Supply-chain pinning for GitHub Actions and npm registry signature checks.
+- [x] Project/task join and outbox complexity reductions.
 
 ### Remaining release blockers
 
@@ -55,7 +59,7 @@ Follow the detailed procedure in
 | ID | Task | Status | Acceptance evidence |
 |---|---|---|---|
 | V02-01 | Create/configure a private Supabase test project | `PENDING` | Public signup disabled; owner and temporary test user available |
-| V02-02 | Apply both V0.2 migrations | `PENDING` | Schema, policies, triggers, RPC grants, indexes, and Realtime publication inspected |
+| V02-02 | Apply all three V0.2 migrations | `PENDING` | Schema, policies, triggers, RPC grants/timeouts, constraints, indexes, and Realtime publication inspected |
 | V02-03 | Prove A/B-user RLS isolation | `PENDING` | Cross-user select/insert/update/delete attempts are rejected |
 | V02-04 | Test a real V0.1 browser snapshot migration | `PENDING` | UUID conversion preserves relationships, Main Focus, platforms, and migration version |
 | V02-05 | Test offline outbox across reload/reconnect | `PENDING` | Create/update/delete survive reload and flush exactly once after reconnect |
@@ -70,6 +74,37 @@ Follow the detailed procedure in
 V0.2 is releasable only when every `V02-*` validation item has evidence, the
 configured-Supabase flows pass, and no personal data or credentials are present
 in the repository.
+
+## Engineering health — security and performance
+
+Audit report:
+[`docs/audits/security-performance-audit-2026-08-09.md`](docs/audits/security-performance-audit-2026-08-09.md)
+
+Audit branch: `agent/security-performance-audit`
+
+### Completed in the first hardening pass
+
+- [x] Scan the current tree and 109-commit history for high-confidence secrets.
+- [x] Remove hardcoded demo/personal seed content from new profiles.
+- [x] Scope Cloud cache by authenticated user and gate rendering until scope matches.
+- [x] Add CSP, anti-clickjacking, MIME, referrer, permissions, HSTS, and disclosure headers.
+- [x] Add UI/database size limits and an import RPC timeout.
+- [x] Pin GitHub Actions by full SHA and close release input shell injection.
+- [x] Reduce Project↔Task assembly from `O(P×T)` to `O(P+T)`.
+- [x] Reduce outbox storage work from `O(M²)` to `O(M)`.
+- [x] Remove Inbox cyclomatic-complexity warnings and split row/dialog concerns.
+
+### Next hardening slices
+
+- [ ] `SEC-10` Validate the third migration, RLS, RPC grants, Auth rate limits, and cache isolation against two real test users.
+- [ ] `SEC-11` Add runtime schema validation for versioned LocalStorage snapshots/outbox entries.
+- [ ] `SEC-12` Evaluate encrypted-at-rest browser persistence for untrusted/shared devices.
+- [ ] `SEC-13` Replace CSP inline allowances with nonces/hashes if the production Next.js path supports it cleanly.
+- [ ] `PERF-01` Split `PersonaProvider` into tested initialization, persistence, and Realtime services.
+- [ ] `PERF-02` Replace full-state Realtime refresh with changed-domain/row reconciliation.
+- [ ] `PERF-03` Add pagination/incremental Cloud reads before datasets exceed personal-scale assumptions.
+- [ ] `PERF-04` Continue component decomposition for Global Quick Capture, Login, Sidebar, and Today Tasks.
+- [ ] `PERF-05` Establish repeatable browser performance budgets and regression benchmarks.
 
 ## V0.3 — Core workflows
 

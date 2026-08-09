@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "security:scan": "node scripts/scan-secrets.mjs",
     "ci:watch": "python scripts/ci_watch.py"
   },
   "dependencies": {

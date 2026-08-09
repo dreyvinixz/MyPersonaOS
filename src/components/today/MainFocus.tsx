@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { usePersonaState } from "@/lib/storage";
 import { Target, CheckCircle2, Circle } from "lucide-react";
+import { PERSONA_INPUT_LIMITS } from "@/lib/persona-state";
 
 export function MainFocus() {
   const { state, updateState, mounted } = usePersonaState();
@@ -54,6 +55,7 @@ export function MainFocus() {
         <input
           type="text"
           value={state.mainFocus}
+          maxLength={PERSONA_INPUT_LIMITS.mainFocus}
           onChange={handleChangeFocus}
           placeholder="Qual é o seu único foco inegociável hoje?"
           className={`flex-1 bg-transparent text-base font-semibold outline-none transition-all ${

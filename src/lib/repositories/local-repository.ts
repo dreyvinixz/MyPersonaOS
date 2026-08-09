@@ -1,106 +1,33 @@
 import type { PersonaState } from "@/types";
+import { createEmptyPersonaState } from "@/lib/persona-state";
 
-const STORAGE_KEY = "mypersonaos_state_v1";
+const LEGACY_STORAGE_KEY = "mypersonaos_state_v1";
+const LOCAL_STORAGE_KEY = "mypersonaos_state_v2_local";
+const LEGACY_OWNER_KEY = "mypersonaos_legacy_owner_v1";
 const BACKUP_PREFIX = "mypersonaos_backup";
 
-function createInitialState(): PersonaState {
-  const now = new Date().toISOString();
-  return {
-    mainFocus: "Finish CodeToday video #01",
-    tasks: [
-      {
-        id: "a1b2c3d4-0001-4000-8000-000000000001",
-        title: "Review script for CodeToday #01",
-        status: "in-progress",
-        priority: "high",
-        isToday: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: "a1b2c3d4-0002-4000-8000-000000000002",
-        title: "Practice 15 mins English read-aloud",
-        status: "pending",
-        priority: "medium",
-        isToday: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: "a1b2c3d4-0003-4000-8000-000000000003",
-        title: "Outline Quant Base initial paper",
-        status: "pending",
-        priority: "low",
-        isToday: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-    ],
-    projects: [
-      {
-        id: "b1c2d3e4-0001-4000-8000-000000000001",
-        name: "MyPersonaOS Launch",
-        description: "Personal Life OS V0.1 release",
-        progress: 60,
-        tasks: [],
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: "b1c2d3e4-0002-4000-8000-000000000002",
-        name: "English Lab Method",
-        description: "Daily habit tracking & vocab loop",
-        progress: 35,
-        tasks: [],
-        createdAt: now,
-        updatedAt: now,
-      },
-    ],
-    contentPieces: [
-      {
-        id: "c1d2e3f4-0001-4000-8000-000000000001",
-        title: "Building an OS for Your Life in 2026",
-        brand: "codetoday",
-        stage: "script",
-        platforms: ["youtube", "reels"],
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: "c1d2e3f4-0002-4000-8000-000000000002",
-        title: "Why Focus Belongs to Today",
-        brand: "personal",
-        stage: "idea",
-        createdAt: now,
-        updatedAt: now,
-      },
-    ],
-    inboxItems: [
-      {
-        id: "d1e2f3a4-0001-4000-8000-000000000001",
-        content: "Explore Supabase RLS policies for multi-device sync",
-        type: "text",
-        status: "pending",
-        createdAt: now,
-        updatedAt: now,
-      },
-    ],
-    englishWords: [
-      {
-        id: "e1f2a3b4-0001-4000-8000-000000000001",
-        term: "Resilience",
-        definition: "The capacity to withstand or recover quickly from difficulties.",
-        example: "Building a personal system requires resilience.",
-        masteryLevel: 4,
-        createdAt: now,
-        updatedAt: now,
-      },
-    ],
-  };
+function storageKey(userId?: string): string {
+  return userId ? `mypersonaos_state_v2_user_${userId}` : LOCAL_STORAGE_KEY;
+}
+
+function getLegacyCandidate(userId?: string): string | null {
+  const localState = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+  const legacyState = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+
+  if (!userId) return localState || legacyState;
+
+  const claimedOwner = window.localStorage.getItem(LEGACY_OWNER_KEY);
+  if (claimedOwner && claimedOwner !== userId) return null;
+
+  const candidate = localState || legacyState;
+  if (candidate && !claimedOwner) {
+    window.localStorage.setItem(LEGACY_OWNER_KEY, userId);
+  }
+  return candidate;
 }
 
 function normalizeState(parsed: Partial<PersonaState>): PersonaState {
-  const initial = createInitialState();
+  const initial = createEmptyPersonaState();
   const now = new Date().toISOString();
 
   return {
@@ -136,34 +63,38 @@ function normalizeState(parsed: Partial<PersonaState>): PersonaState {
 }
 
 export class LocalRepository {
-  getState(): PersonaState {
-    if (typeof window === "undefined") return createInitialState();
+  getState(userId?: string): PersonaState {
+    if (typeof window === "undefined") return createEmptyPersonaState();
 
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const key = storageKey(userId);
+      const raw = window.localStorage.getItem(key) || getLegacyCandidate(userId);
       if (!raw) {
-        const initial = createInitialState();
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+        const initial = createEmptyPersonaState();
+        window.localStorage.setItem(key, JSON.stringify(initial));
         return initial;
       }
-      return normalizeState(JSON.parse(raw) as Partial<PersonaState>);
+      const state = normalizeState(JSON.parse(raw) as Partial<PersonaState>);
+      window.localStorage.setItem(key, JSON.stringify(state));
+      return state;
     } catch (error) {
       console.error("Failed to read local PersonaState:", error);
-      return createInitialState();
+      return createEmptyPersonaState();
     }
   }
 
-  saveState(state: PersonaState): void {
+  saveState(state: PersonaState, userId?: string): void {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    window.localStorage.setItem(storageKey(userId), JSON.stringify(state));
   }
 
-  createBackup(label = "manual"): string | null {
+  createBackup(label = "manual", userId?: string): string | null {
     if (typeof window === "undefined") return null;
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(storageKey(userId));
     if (!raw) return null;
 
-    const key = `${BACKUP_PREFIX}_${label}_${new Date().toISOString()}`;
+    const scope = userId ? `user_${userId}` : "local";
+    const key = `${BACKUP_PREFIX}_${scope}_${label}_${new Date().toISOString()}`;
     window.localStorage.setItem(key, raw);
     return key;
   }

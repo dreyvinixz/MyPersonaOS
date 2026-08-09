@@ -133,6 +133,14 @@ export class SupabaseRepository {
       updatedAt: task.updated_at,
     }));
 
+    const tasksByProjectId = new Map<string, Task[]>();
+    tasks.forEach((task) => {
+      if (!task.projectId) return;
+      const projectTasks = tasksByProjectId.get(task.projectId);
+      if (projectTasks) projectTasks.push(task);
+      else tasksByProjectId.set(task.projectId, [task]);
+    });
+
     const projects: Project[] = (projectsRes.data || []).map(
       (project: ProjectRow) => ({
         id: project.id,
@@ -140,7 +148,7 @@ export class SupabaseRepository {
         description: project.description ?? undefined,
         progress: project.progress,
         deadline: project.deadline ?? undefined,
-        tasks: tasks.filter((task) => task.projectId === project.id),
+        tasks: tasksByProjectId.get(project.id) || [],
         createdAt: project.created_at,
         updatedAt: project.updated_at,
       })
@@ -189,7 +197,7 @@ export class SupabaseRepository {
     const mainFocus =
       ((profileRes.data?.settings as Record<string, unknown> | null)?.mainFocus as
         | string
-        | undefined) || "Finish CodeToday video #01";
+        | undefined) || "";
 
     return {
       mainFocus,

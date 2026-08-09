@@ -111,10 +111,10 @@ export async function runLocalToCloudMigration(
   // Keep the exact legacy snapshot recoverable, then normalize local IDs before
   // touching cloud. If the RPC fails, subsequent offline edits still use UUIDs
   // and can safely remain queued for a later retry.
-  localRepository.createBackup("pre-v0.2-cloud-migration");
-  const localSnapshot = localRepository.getState();
+  localRepository.createBackup("pre-v0.2-cloud-migration", userId);
+  const localSnapshot = localRepository.getState(userId);
   const normalizedSnapshot = normalizeLegacySnapshot(localSnapshot);
-  localRepository.saveState(normalizedSnapshot);
+  localRepository.saveState(normalizedSnapshot, userId);
 
   const { data, error: rpcError } = await supabase.rpc("import_local_snapshot", {
     snapshot: normalizedSnapshot,

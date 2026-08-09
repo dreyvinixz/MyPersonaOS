@@ -1,23 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { Inbox, Zap } from "lucide-react";
+import { InboxConvertDialog } from "@/components/inbox/InboxConvertDialog";
+import { InboxItemRow } from "@/components/inbox/InboxItemRow";
 import {
-  Archive,
-  CheckCircle2,
-  FolderPlus,
-  Inbox,
-  ListTodo,
-  MoreHorizontal,
-  Trash2,
-  X,
-  Zap,
-} from "lucide-react";
+  isInboxItemPending,
+  isInboxItemProcessed,
+  type InboxConvertTarget,
+  type InboxFilterMode,
+} from "@/lib/inbox";
 import { usePersonaState } from "@/lib/storage";
 import { openQuickCapture } from "@/lib/ui-events";
 import type { InboxItem } from "@/types";
-
-type FilterMode = "all" | "unprocessed" | "processed";
-type ConvertTarget = "task" | "project";
 
 function createUuid(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
@@ -26,31 +21,24 @@ function createUuid(): string {
 
 export default function InboxPage() {
   const { state, updateState, mounted } = usePersonaState();
-  const [filter, setFilter] = useState<FilterMode>("all");
+  const [filter, setFilter] = useState<InboxFilterMode>("all");
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [convertingItem, setConvertingItem] = useState<{
     item: InboxItem;
-    target: ConvertTarget;
+    target: InboxConvertTarget;
   } | null>(null);
   const [convertTitle, setConvertTitle] = useState("");
 
   if (!mounted) return null;
 
-  const isUnprocessed = (item: InboxItem) =>
-    item.status === "pending" || (!item.status && !item.processed);
-  const isProcessed = (item: InboxItem) =>
-    item.status === "archived" ||
-    item.status === "converted" ||
-    (item.processed && !item.status);
-
   const filtered = state.inboxItems.filter((item) => {
-    if (filter === "unprocessed") return isUnprocessed(item);
-    if (filter === "processed") return isProcessed(item);
+    if (filter === "unprocessed") return isInboxItemPending(item);
+    if (filter === "processed") return isInboxItemProcessed(item);
     return true;
   });
 
-  const unprocessedCount = state.inboxItems.filter(isUnprocessed).length;
-  const processedCount = state.inboxItems.filter(isProcessed).length;
+  const unprocessedCount = state.inboxItems.filter(isInboxItemPending).length;
+  const processedCount = state.inboxItems.filter(isInboxItemProcessed).length;
 
   const handleMarkProcessed = (id: string) => {
     const iso = new Date().toISOString();
@@ -107,11 +95,11 @@ export default function InboxPage() {
 
     updateState((previous) => ({
       ...previous,
-      inboxItems: previous.inboxItems.filter((item) => !isProcessed(item)),
+      inboxItems: previous.inboxItems.filter((item) => !isInboxItemProcessed(item)),
     }));
   };
 
-  const openConvert = (item: InboxItem, target: ConvertTarget) => {
+  const openConvert = (item: InboxItem, target: InboxConvertTarget) => {
     if (item.status !== "pending") return;
     setConvertingItem({ item, target });
     setConvertTitle(item.content);
@@ -192,15 +180,7 @@ export default function InboxPage() {
     closeConvert();
   };
 
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-  const filters: { mode: FilterMode; label: string; count: number }[] = [
+  const filters: { mode: InboxFilterMode; label: string; count: number }[] = [
     { mode: "all", label: "Todos", count: state.inboxItems.length },
     { mode: "unprocessed", label: "Pendentes", count: unprocessedCount },
     { mode: "processed", label: "Processados", count: processedCount },
@@ -334,289 +314,33 @@ export default function InboxPage() {
               </div>
             </li>
           ) : (
-            filtered.map((item) => {
-              const processed = isProcessed(item);
-              const converted = item.status === "converted";
-              return (
-                <li
-                  key={item.id}
-                  className="group p-4 flex items-start justify-between gap-3 transition-colors relative"
-                  style={{ background: processed ? "transparent" : "var(--card)" }}
-                >
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <button
-                      type="button"
-                      onClick={() => handleMarkProcessed(item.id)}
-                      disabled={converted}
-                      className="mt-0.5 shrink-0 transition-colors disabled:cursor-default"
-                      aria-label={
-                        converted
-                          ? "Item convertido"
-                          : item.status === "archived"
-                            ? "Marcar como pendente"
-                            : "Arquivar item"
-                      }
-                      title={converted ? "Itens convertidos mantêm sua linhagem" : undefined}
-                    >
-                      <CheckCircle2
-                        size={20}
-                        style={{
-                          color: processed ? "var(--green)" : "var(--border)",
-                        }}
-                      />
-                    </button>
-
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={`text-base font-medium leading-relaxed break-words ${
-                          processed ? "line-through opacity-45" : ""
-                        }`}
-                        style={{ color: "var(--text)" }}
-                      >
-                        {item.content}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span
-                          className="text-xs font-mono font-medium"
-                          style={{ color: "var(--text-subtle)" }}
-                        >
-                          {formatDate(item.createdAt)}
-                        </span>
-                        {converted && item.convertedToType && (
-                          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[var(--accent-dim)] text-[var(--accent-hover)] border border-[rgba(155,135,245,0.25)]">
-                            → {item.convertedToType}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span
-                      className="hidden sm:inline text-xs uppercase font-mono font-semibold px-2.5 py-1 rounded border"
-                      style={{
-                        background: "rgba(255,255,255,0.03)",
-                        color: "var(--text-muted)",
-                        borderColor: "var(--border-subtle)",
-                      }}
-                    >
-                      {item.type}
-                    </span>
-
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setActiveMenu(activeMenu === item.id ? null : item.id)
-                        }
-                        className="p-1.5 rounded-md transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100"
-                        style={{ color: "var(--text-muted)" }}
-                        aria-label="Abrir ações do item"
-                        aria-expanded={activeMenu === item.id}
-                      >
-                        <MoreHorizontal size={17} />
-                      </button>
-
-                      {activeMenu === item.id && (
-                        <div
-                          className="absolute right-0 top-8 z-50 w-48 rounded-xl border shadow-2xl py-1 animate-fade-in"
-                          style={{
-                            background: "var(--card)",
-                            borderColor: "var(--border)",
-                            boxShadow:
-                              "0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--border)",
-                          }}
-                        >
-                          {!processed && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => openConvert(item, "task")}
-                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
-                                style={{ color: "var(--text)" }}
-                              >
-                                <ListTodo size={14} style={{ color: "var(--accent)" }} />
-                                Converter em Tarefa
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => openConvert(item, "project")}
-                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
-                                style={{ color: "var(--text)" }}
-                              >
-                                <FolderPlus size={14} style={{ color: "var(--green)" }} />
-                                Converter em Projeto
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleArchive(item.id)}
-                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
-                                style={{ color: "var(--text)" }}
-                              >
-                                <Archive size={14} style={{ color: "var(--amber)" }} />
-                                Arquivar
-                              </button>
-                            </>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(item.id)}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left hover:bg-[var(--card-hover)]"
-                            style={{ color: "var(--red)" }}
-                          >
-                            <Trash2 size={14} />
-                            Excluir
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </li>
-              );
-            })
+            filtered.map((item) => (
+              <InboxItemRow
+                key={item.id}
+                item={item}
+                menuOpen={activeMenu === item.id}
+                onToggleProcessed={() => handleMarkProcessed(item.id)}
+                onToggleMenu={() =>
+                  setActiveMenu(activeMenu === item.id ? null : item.id)
+                }
+                onConvert={(target) => openConvert(item, target)}
+                onArchive={() => handleArchive(item.id)}
+                onDelete={() => handleDelete(item.id)}
+              />
+            ))
           )}
         </ul>
       </div>
 
       {convertingItem && (
-        <>
-          <div
-            className="fixed inset-0 z-[998]"
-            style={{
-              background: "rgba(0,0,0,0.60)",
-              backdropFilter: "blur(6px)",
-            }}
-            onClick={closeConvert}
-          />
-          <div
-            className="fixed inset-0 z-[999] flex items-start justify-center px-3 pt-[16vh] sm:pt-[20vh]"
-            onClick={closeConvert}
-          >
-            <div
-              className="w-full max-w-[440px] rounded-2xl border shadow-2xl overflow-hidden animate-modal-in"
-              style={{
-                background: "var(--card)",
-                borderColor: "var(--border)",
-                boxShadow:
-                  "0 25px 60px rgba(0,0,0,0.50), 0 0 0 1px var(--border)",
-              }}
-              onClick={(event) => event.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-            >
-              <div
-                className="flex items-center justify-between px-5 py-3.5 border-b"
-                style={{ borderColor: "var(--border)" }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="flex items-center justify-center w-6 h-6 rounded-md"
-                    style={{
-                      background:
-                        convertingItem.target === "task"
-                          ? "var(--accent-dim)"
-                          : "var(--green-dim)",
-                      color:
-                        convertingItem.target === "task"
-                          ? "var(--accent)"
-                          : "var(--green)",
-                    }}
-                  >
-                    {convertingItem.target === "task" ? (
-                      <ListTodo size={13} strokeWidth={2.5} />
-                    ) : (
-                      <FolderPlus size={13} strokeWidth={2.5} />
-                    )}
-                  </div>
-                  <span
-                    className="text-sm font-semibold"
-                    style={{ color: "var(--text)" }}
-                  >
-                    {convertingItem.target === "task"
-                      ? "Converter em Tarefa"
-                      : "Converter em Projeto"}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={closeConvert}
-                  className="p-1 rounded-md"
-                  style={{ color: "var(--text-muted)" }}
-                  aria-label="Fechar"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="px-5 py-4">
-                <label
-                  className="text-[10px] uppercase tracking-widest font-semibold mb-2 block"
-                  style={{ color: "var(--text-subtle)" }}
-                >
-                  {convertingItem.target === "task"
-                    ? "Título da tarefa"
-                    : "Nome do projeto"}
-                </label>
-                <input
-                  autoFocus
-                  value={convertTitle}
-                  onChange={(event) => setConvertTitle(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") handleConvertConfirm();
-                    if (event.key === "Escape") closeConvert();
-                  }}
-                  className="w-full bg-transparent text-sm outline-none border-b pb-2"
-                  style={{
-                    color: "var(--text)",
-                    borderColor: "var(--border)",
-                  }}
-                />
-                <p
-                  className="text-[11px] mt-3"
-                  style={{ color: "var(--text-subtle)" }}
-                >
-                  Original:{" "}
-                  <span style={{ color: "var(--text-muted)" }}>
-                    &ldquo;{convertingItem.item.content.substring(0, 100)}
-                    {convertingItem.item.content.length > 100 ? "…" : ""}
-                    &rdquo;
-                  </span>
-                </p>
-              </div>
-
-              <div
-                className="flex items-center justify-end gap-2 px-5 py-3 border-t"
-                style={{ borderColor: "var(--border)" }}
-              >
-                <button
-                  type="button"
-                  onClick={closeConvert}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConvertConfirm}
-                  disabled={!convertTitle.trim()}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-30"
-                  style={{
-                    background:
-                      convertingItem.target === "task"
-                        ? "var(--accent)"
-                        : "var(--green)",
-                    color: "#fff",
-                  }}
-                >
-                  {convertingItem.target === "task"
-                    ? "Criar Tarefa"
-                    : "Criar Projeto"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
+        <InboxConvertDialog
+          item={convertingItem.item}
+          target={convertingItem.target}
+          title={convertTitle}
+          onTitleChange={setConvertTitle}
+          onClose={closeConvert}
+          onConfirm={handleConvertConfirm}
+        />
       )}
     </div>
   );

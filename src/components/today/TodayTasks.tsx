@@ -5,6 +5,7 @@ import { usePersonaState } from "@/lib/storage";
 import { createEntityId } from "@/lib/ids";
 import { CheckSquare, Plus, Check, Trash2 } from "lucide-react";
 import { Priority, TaskStatus } from "@/types";
+import { PERSONA_INPUT_LIMITS } from "@/lib/persona-state";
 
 export function TodayTasks() {
   const { state, updateState, mounted } = usePersonaState();
@@ -82,6 +83,7 @@ export function TodayTasks() {
         <input
           type="text"
           value={newTitle}
+          maxLength={PERSONA_INPUT_LIMITS.taskTitle}
           onChange={(event) => setNewTitle(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && handleAddTask()}
           placeholder="Adicionar tarefa para hoje..."

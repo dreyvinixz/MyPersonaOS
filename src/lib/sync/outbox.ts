@@ -98,6 +98,8 @@ function diffCollection<T extends { id: string }>(
   onUpsert: (entity: T) => CloudMutation,
   onDelete: (id: string) => CloudMutation
 ): CloudMutation[] {
+  if (previous === next) return [];
+
   const upserts: CloudMutation[] = [];
   const deletes: CloudMutation[] = [];
   const previousById = new Map(previous.map((entity) => [entity.id, entity]));
@@ -202,15 +204,21 @@ async function applyMutation(mutation: CloudMutation): Promise<void> {
 }
 
 export async function flushCloudOutbox(userId: string): Promise<void> {
-  while (true) {
-    const nextMutation = readAll().find((mutation) => mutation.userId === userId);
-    if (!nextMutation) return;
+  const pending = readAll().filter((mutation) => mutation.userId === userId);
+  if (pending.length === 0) return;
 
-    await applyMutation(nextMutation);
-
-    const current = readAll();
-    writeAll(
-      current.filter((mutation) => mutation.mutationId !== nextMutation.mutationId)
-    );
+  const completedIds = new Set<string>();
+  try {
+    for (const mutation of pending) {
+      await applyMutation(mutation);
+      completedIds.add(mutation.mutationId);
+    }
+  } finally {
+    if (completedIds.size > 0) {
+      const current = readAll();
+      writeAll(
+        current.filter((mutation) => !completedIds.has(mutation.mutationId))
+      );
+    }
   }
 }

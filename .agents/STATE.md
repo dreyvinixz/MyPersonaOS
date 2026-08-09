@@ -87,6 +87,7 @@ V0.2 migrations:
 
 - `supabase/migrations/20260807000000_v0_2_schema.sql`
 - `supabase/migrations/20260807001000_v0_2_hardening.sql`
+- `supabase/migrations/20260809000000_security_performance_hardening.sql`
 
 Implemented:
 
@@ -101,7 +102,27 @@ Implemented:
 - hardened `SECURITY DEFINER` migration RPC with empty `search_path` and restricted EXECUTE grants;
 - task → project same-owner enforcement trigger;
 - common `user_id` / status indexes;
-- Realtime publication includes `user_profiles` and all synchronized domain tables.
+- Realtime publication includes `user_profiles` and all synchronized domain tables;
+- bounded personal-data fields and a 15-second atomic-import statement timeout;
+- composite owner/newest-first indexes matching all full-state list queries.
+
+## Security/performance audit state
+
+The 2026-08-09 source/history audit found no high-confidence committed secret,
+raw SQL injection path, dangerous HTML sink, circular dependency, or known npm
+vulnerability. The audit branch adds:
+
+- a CI/release tracked-file secret scanner and npm registry signature verification;
+- full-SHA GitHub Action pinning and release input validation;
+- browser CSP/security headers and disabled Next.js technology disclosure;
+- authenticated-user-scoped Cloud browser cache with privacy gating;
+- empty new-profile state instead of hardcoded personal/demo seeds;
+- UI/PostgreSQL input bounds and import RPC timeout;
+- `O(P+T)` Project↔Task assembly and `O(M)` outbox storage processing;
+- initial large-component decomposition beginning with Inbox.
+
+Detailed evidence and residual risks are recorded in
+`docs/audits/security-performance-audit-2026-08-09.md`.
 
 ## Current implementation status
 
@@ -123,7 +144,7 @@ Implemented:
 - GitHub Actions typecheck/build workflow;
 - ESLint 9 flat configuration with Next.js and strict React Hooks rules;
 - dependency security baseline at zero known `npm audit` vulnerabilities as of 2026-08-09;
-- detailed V0.2 release validation checklist at `docs/v0.2-supabase-validation.md`.
+- detailed V0.2 release validation checklist at `docs/v0.2-supabase-validation.md`;
 - canonical milestone/task tracking in `ROADMAP.md`.
 
 ### Local release checks — 2026-08-09
@@ -161,6 +182,8 @@ The product is personal/single-owner for now.
 - RLS is mandatory for personal tables.
 - Cloud app content must not render before authenticated session resolution.
 - Browser cache is currently trusted-device storage and is not encrypted at rest.
+- Cloud cache keys are scoped to the authenticated user; the legacy generic snapshot
+  can be claimed by only one user ID and private content stays gated during scope changes.
 
 ## Current milestone
 

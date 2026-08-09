@@ -5,16 +5,18 @@ import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import { GlobalQuickCapture } from "@/components/capture/GlobalQuickCapture";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { PersonaProvider } from "@/stores/persona-store";
+import { usePersonaState } from "@/lib/storage";
 
 function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isCloudMode, user, loading } = useAuth();
+  const { privacyReady } = usePersonaState();
   const isAuthRoute = pathname.startsWith("/login");
 
   if (isAuthRoute) return children;
 
   // Never expose cached personal data while a Cloud Mode session is unresolved.
-  if (isCloudMode && (loading || !user)) {
+  if (isCloudMode && (loading || !user || !privacyReady)) {
     return (
       <div className="min-h-screen flex items-center justify-center text-xs font-mono text-[var(--text-subtle)]">
         Verificando sessão privada…

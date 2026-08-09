@@ -12,6 +12,7 @@ import {
 } from "react";
 import type { PersonaState, SyncStatus } from "@/types";
 import { localRepository } from "@/lib/repositories/local-repository";
+import { createEmptyPersonaState } from "@/lib/persona-state";
 import { supabaseRepository } from "@/lib/repositories/supabase-repository";
 import { useAuth } from "@/components/auth/AuthProvider";
 import {
@@ -31,6 +32,7 @@ type PersonaStoreValue = {
   updateState: (updater: (previous: PersonaState) => PersonaState) => void;
   syncStatus: SyncStatus;
   mounted: boolean;
+  privacyReady: boolean;
 };
 
 const PersonaStoreContext = createContext<PersonaStoreValue | null>(null);
@@ -46,9 +48,11 @@ const getServerHydrationSnapshot = () => false;
 export function PersonaProvider({ children }: { children: React.ReactNode }) {
   const { user, isCloudMode, loading: authLoading } = useAuth();
   const [state, setState] = useState<PersonaState>(() =>
-    localRepository.getState()
+    isCloudMode ? createEmptyPersonaState() : localRepository.getState()
   );
   const stateRef = useRef(state);
+  const activeScopeUserIdRef = useRef<string | null>(null);
+  const [activeScopeUserId, setActiveScopeUserId] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(() =>
     isCloudMode ? "initializing" : "local"
   );
@@ -69,7 +73,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
   const commitState = useCallback(
     (next: PersonaState) => {
       adoptState(next);
-      localRepository.saveState(next);
+      localRepository.saveState(next, activeScopeUserIdRef.current ?? undefined);
     },
     [adoptState]
   );
@@ -165,6 +169,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
     if (!isCloudMode) {
       cloudReadyRef.current = false;
+      activeScopeUserIdRef.current = null;
 
       // A storage event already represents a write from another tab. Adopt it
       // without writing it back, otherwise two tabs can echo the same event.
@@ -208,6 +213,11 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
     const start = async () => {
       try {
+        await Promise.resolve();
+        if (disposed) return;
+        activeScopeUserIdRef.current = user.id;
+        setActiveScopeUserId(user.id);
+        adoptState(localRepository.getState(user.id));
         await initializeCloud(user.id);
         if (disposed) return;
         channel = subscribeToPersonaRealtime(user.id, scheduleRemoteRefresh);
@@ -287,10 +297,18 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
   const visibleSyncStatus: SyncStatus =
     authLoading || (isCloudMode && !user) ? "initializing" : syncStatus;
+  const privacyReady =
+    !isCloudMode || Boolean(user && activeScopeUserId === user.id);
 
   const value = useMemo<PersonaStoreValue>(
-    () => ({ state, updateState, syncStatus: visibleSyncStatus, mounted }),
-    [mounted, state, updateState, visibleSyncStatus]
+    () => ({
+      state,
+      updateState,
+      syncStatus: visibleSyncStatus,
+      mounted,
+      privacyReady,
+    }),
+    [mounted, privacyReady, state, updateState, visibleSyncStatus]
   );
 
   return (
