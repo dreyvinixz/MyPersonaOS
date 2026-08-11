@@ -70,6 +70,7 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
   13. Added `docs/audits/security-performance-audit-2026-08-09.md` with evidence, residual risks, and the next hardening queue.
   14. On 2026-08-11, initialized the clean Supabase homologation schema, verified RLS/policies/RPC/Realtime, and added the missing `tasks.project_id` foreign-key index as a fourth migration.
   15. Confirmed two standard `authenticated` users and ran a rollback-safe A/B RLS suite: 9/9 checks passed and no test rows remained.
+  16. Confirmed public signup is disabled and closed the private Supabase project-setup gate without recording any API key.
 
 ---
 
@@ -81,7 +82,7 @@ V0.2 security/performance hardening on top of Supabase Persistence + Private Aut
 
 ### Status
 
-`IN_PROGRESS / CLOUD_RLS_VALIDATED_AUTH_AND_FLOW_VALIDATION_PENDING`
+`IN_PROGRESS / CLOUD_AUTH_RLS_VALIDATED_BROWSER_FLOW_PENDING`
 
 **Do not merge or tag `v0.2.0` yet.**
 
@@ -91,8 +92,8 @@ security-header smoke test, dependency graph, and complexity analysis pass. On
 2026-08-11, the clean Supabase homologation database received all four migrations;
 schema, RLS, policies, RPC configuration, Realtime membership, constraints, triggers,
 and indexes were inspected. Two confirmed users now exist and SQL-level A/B RLS
-isolation passed 9/9 checks. Public-signup confirmation and end-to-end browser flow
-validation remain.
+isolation passed 9/9 checks. Public signup is disabled; end-to-end browser flow
+validation remains.
 
 ### Release blockers resolved in code
 
@@ -115,7 +116,7 @@ validation remain.
 
 ### Cloud validation completed — 2026-08-11
 
-- Project `rchkmaohyiehktmhxkxp`: `ACTIVE_HEALTHY`, initially empty.
+- Project `rchkmaohyiehktmhxkxp`: `ACTIVE_HEALTHY`, initially empty, with public signup disabled.
 - Four migrations recorded; six personal tables have RLS and owner policies.
 - RPC is authenticated-only with empty `search_path` and 15-second timeout.
 - All six tables are in `supabase_realtime`.
@@ -154,7 +155,7 @@ passed; no source change was needed for that environmental failure.
 Then, against an actual configured Supabase test project:
 
 1. all four V0.2 migrations applied and inspected on 2026-08-11;
-2. two confirmed owner/test users created; public-signup-disabled setting still needs manual confirmation;
+2. public signup disabled and two confirmed owner/test users created;
 3. SQL-level A/B RLS isolation passed 9/9 checks on 2026-08-11;
 4. migrate a real V0.1-style local snapshot containing IDs such as `1`, `p1`, `i1`;
 5. verify `mainFocus`, platforms, relationships, and migration_version;
@@ -172,14 +173,13 @@ Then, against an actual configured Supabase test project:
 
 ### Next best action
 
-Confirm public signup is disabled, then configure Cloud Mode and run the real V0.1 browser snapshot migration with the owner account.
+Configure Cloud Mode using the project URL and publishable key in ignored environment storage, then run the real V0.1 browser snapshot migration with the owner account.
 
 ### Remaining tasks
 
-1. Confirm public signup is disabled in Supabase Authentication settings.
-2. Configure Cloud Mode environment variables without committing credentials.
-3. Run the real V0.1 browser snapshot migration and different-account cache test.
-4. Run offline reload/reconnect and PC ↔ mobile Realtime tests.
-5. Validate auth privacy and the production Vercel deployment.
-6. Fix any real-environment failures, then request owner review before merge/tag.
-7. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md`, beginning with runtime snapshot validation and splitting `PersonaProvider`.
+1. Configure Cloud Mode environment variables without committing credentials.
+2. Run the real V0.1 browser snapshot migration and different-account cache test.
+3. Run offline reload/reconnect and PC ↔ mobile Realtime tests.
+4. Validate auth privacy and the production Vercel deployment.
+5. Fix any real-environment failures, then request owner review before merge/tag.
+6. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md`, beginning with runtime snapshot validation and splitting `PersonaProvider`.
