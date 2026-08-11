@@ -28,7 +28,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'npm'
 
       - name: Install dependencies
@@ -104,7 +104,7 @@ jobs:
 
           * **Build Date:** $DATE
           * **Version Tag:** $TAG
-          * **Node.js Environment:** v20.x
+          * **Node.js Environment:** v24.x
           * **Framework:** Next.js 16 (App Router, React 19)
           * **Status:** Passed dependency audit, ESLint, TypeScript typecheck, and Next.js production build
           * **License:** [MIT License](https://github.com/dreyvinixz/MyPersonaOS/blob/main/LICENSE)
