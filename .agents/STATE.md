@@ -81,6 +81,10 @@ First Cloud Mode initialization:
 5. if migration fails, preserve local state and do **not** fetch an empty/partial cloud snapshot over it;
 6. set `migration_version = 1` only after the transaction's explicit migration/cloud-wins path completes.
 
+The backup lookup must fall back to the eligible V0.1/V0.2 local candidate when
+the user-scoped V0.2 key does not exist yet. The owner-claim guard still rejects
+a legacy candidate claimed by a different authenticated user.
+
 ## Database/security state
 
 V0.2 migrations:
