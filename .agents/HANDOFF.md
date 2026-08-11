@@ -68,6 +68,7 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
   11. Reduced Project↔Task assembly from `O(P×T)` to `O(P+T)` and outbox storage processing from `O(M²)` to `O(M)`.
   12. Generated the 36-module/69-edge code graph, verified zero cycles, and began maintainability decomposition with Inbox.
   13. Added `docs/audits/security-performance-audit-2026-08-09.md` with evidence, residual risks, and the next hardening queue.
+  14. On 2026-08-11, initialized the clean Supabase homologation schema, verified RLS/policies/RPC/Realtime, and added the missing `tasks.project_id` foreign-key index as a fourth migration.
 
 ---
 
@@ -79,15 +80,16 @@ V0.2 security/performance hardening on top of Supabase Persistence + Private Aut
 
 ### Status
 
-`READY_FOR_REVIEW / CLOUD_VALIDATION_PENDING`
+`IN_PROGRESS / CLOUD_SCHEMA_APPLIED_AUTH_AND_FLOW_VALIDATION_PENDING`
 
 **Do not merge or tag `v0.2.0` yet.**
 
 The source audit and first remediation pass are complete. Clean installation,
 dependency vulnerability/signature checks, secret scan, TypeScript, lint, build,
-security-header smoke test, dependency graph, and complexity analysis pass. V0.2
-still requires the configured-Supabase validation pass; database, RLS, Auth,
-migration, offline, Realtime, and multi-device behavior cannot be proven by Local Mode.
+security-header smoke test, dependency graph, and complexity analysis pass. On
+2026-08-11, the clean Supabase homologation database received all four migrations;
+schema, RLS, policies, RPC configuration, Realtime membership, constraints, triggers,
+and indexes were inspected. Auth configuration and end-to-end flow validation remain.
 
 ### Release blockers resolved in code
 
@@ -107,6 +109,18 @@ migration, offline, Realtime, and multi-device behavior cannot be proven by Loca
 - New profiles no longer import hardcoded demo/personal content.
 - Browser security headers, input/database limits, RPC timeout, secret scanning, dependency signatures, Action SHA pins, and safe release input handling are present.
 - Project/task assembly is `O(P+T)` and outbox storage work is `O(M)`.
+
+### Cloud validation completed — 2026-08-11
+
+- Project `rchkmaohyiehktmhxkxp`: `ACTIVE_HEALTHY`, initially empty.
+- Four migrations recorded; six personal tables have RLS and owner policies.
+- RPC is authenticated-only with empty `search_path` and 15-second timeout.
+- All six tables are in `supabase_realtime`.
+- Performance advisor's unindexed-FK finding was fixed by
+  `20260811200000_add_tasks_project_id_index.sql`.
+- Remaining unused-index notices are expected on an empty database.
+- SECURITY DEFINER advisor warning is intentional for the atomic authenticated import
+  and remains subject to the A/B behavior test.
 
 ### Required validation before merge
 
@@ -132,7 +146,7 @@ passed; no source change was needed for that environmental failure.
 
 Then, against an actual configured Supabase test project:
 
-1. apply all three V0.2 migrations;
+1. all four V0.2 migrations applied and inspected on 2026-08-11;
 2. disable public sign-up and create the owner account;
 3. verify RLS isolation with a temporary second test user;
 4. migrate a real V0.1-style local snapshot containing IDs such as `1`, `p1`, `i1`;
@@ -151,13 +165,14 @@ Then, against an actual configured Supabase test project:
 
 ### Next best action
 
-Apply all three migrations to a clean private Supabase test project, then run the A/B-user isolation and different-account cache-scope tests first.
+Disable public signup, create the owner and temporary B user, then run the A/B-user isolation and different-account cache-scope tests.
 
 ### Remaining tasks
 
-1. Apply all three migrations to the test project and inspect RLS/RPC/Realtime configuration.
-2. Run the A/B-user isolation and V0.1 snapshot migration tests.
-3. Run offline reload/reconnect and PC ↔ mobile Realtime tests.
-4. Validate auth privacy and the production Vercel deployment.
-5. Fix any real-environment failures, then request owner review before merge/tag.
-6. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md`, beginning with runtime snapshot validation and splitting `PersonaProvider`.
+1. Disable public signup and create the owner and temporary B test users.
+2. Run the A/B-user isolation and different-account browser-cache tests.
+3. Run the V0.1 snapshot migration test.
+4. Run offline reload/reconnect and PC ↔ mobile Realtime tests.
+5. Validate auth privacy and the production Vercel deployment.
+6. Fix any real-environment failures, then request owner review before merge/tag.
+7. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md`, beginning with runtime snapshot validation and splitting `PersonaProvider`.
