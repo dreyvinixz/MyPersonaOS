@@ -166,14 +166,17 @@ Detailed evidence and residual risks are recorded in
   empty `search_path`, 15-second timeout, constraints, triggers, and indexes were inspected;
 - the missing `tasks.project_id` foreign-key index reported by the performance advisor
   was added through a reproducible fourth migration;
+- two confirmed, non-banned users both correctly map to the standard `authenticated` role;
+- SQL-level A/B RLS validation passed 9/9 checks across all six personal tables, including
+  cross-user SELECT/INSERT/UPDATE/DELETE denial and task→foreign-project rejection;
+- the validation ran inside a transaction and `ROLLBACK` left all six personal tables at zero rows;
 - the remaining SECURITY DEFINER advisor warning is expected for the authenticated-only
-  atomic import RPC and must be closed with the A/B behavior test, not by weakening the import contract;
+  atomic import RPC; its browser import behavior remains to be validated without weakening the contract;
 - unused-index information is expected while the clean project contains no workload.
 
 ### Not yet proven / still requires release validation
 
-- public signup disabled and owner/temporary test users created in the Supabase test project;
-- RLS A/B-user isolation test;
+- public signup disabled in the Supabase Authentication settings;
 - real V0.1 browser snapshot migration test;
 - real offline → reload → reconnect outbox test;
 - PC ↔ mobile Realtime verification including DELETE and Main Focus;
@@ -204,7 +207,7 @@ The product is personal/single-owner for now.
 
 ### V0.2 — Supabase Persistence, RLS & Private Multi-Device Sync
 
-**Engineering status:** `CLOUD_SCHEMA_APPLIED_AUTH_AND_FLOW_VALIDATION_PENDING`
+**Engineering status:** `CLOUD_RLS_VALIDATED_AUTH_AND_FLOW_VALIDATION_PENDING`
 
 The release-gate audit found and directly corrected data-loss, synchronization, deletion, migration, Realtime, auth-shell, lint, React lifecycle, and dependency-security issues. Local automated checks now pass. Do not merge/tag V0.2 until the configured-Supabase validation checklist passes.
 
