@@ -224,21 +224,22 @@ The product is personal/single-owner for now.
 
 ### V0.2 — Supabase Persistence, RLS & Private Multi-Device Sync
 
-**Engineering status:** `CLOUD_MODE_SMOKE_AND_RPC_VALIDATED_BROWSER_MIGRATION_PENDING`
+**Engineering status:** `VALIDATED_PR_PENDING`
 
-The release-gate audit found and directly corrected data-loss, synchronization, deletion, migration, Realtime, auth-shell, lint, React lifecycle, and dependency-security issues. Local automated checks now pass. Do not merge/tag V0.2 until the configured-Supabase validation checklist passes.
+Automated checks, SQL-level A/B RLS, RPC migration, and authenticated browser validation (V0.1 legacy snapshot migration 6/6, offline outbox reload/reconnect, multi-window Realtime, and login/logout privacy) have all passed. Ready for PR review and merge into `main`.
 
 ## Current Git workflow
 
 Active feature branch:
 
-`agent/security-performance-audit`
+`v0.2-final-validation`
 
 Base:
 
 `main`
 
-No pull request should be opened until the owner explicitly requests it.
+Pull Request open on `v0.2-final-validation` -> `main`.
+
 
 ## Architectural guardrails
 

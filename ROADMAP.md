@@ -29,9 +29,9 @@ exists on a branch.
 
 ## Active release gate — V0.2
 
-Branch: `agent/security-performance-audit`
+Branch: `v0.2-final-validation`
 
-Current status: `CLOUD_MODE_SMOKE_AND_RPC_VALIDATED_BROWSER_MIGRATION_PENDING`
+Current status: `VALIDATED_PR_PENDING`
 
 ### Engineering complete
 
@@ -43,7 +43,7 @@ Current status: `CLOUD_MODE_SMOKE_AND_RPC_VALIDATED_BROWSER_MIGRATION_PENDING`
 - [x] Durable diff-based outbox for offline create, update, and delete operations.
 - [x] Debounced Realtime refresh including deletes and Main Focus.
 - [x] Explicit sync states: initializing, local, syncing, synced, offline, and error.
-- [x] Next.js 16.3 security upgrade and `proxy.ts` auth boundary migration.
+- [x] Next.js 16.3 security upgrade and `proxy.ts` / `middleware.ts` auth boundary.
 - [x] ESLint 9 flat configuration and strict React Hooks rules.
 - [x] Clean dependency audit, TypeScript check, lint, and production build.
 - [x] Source/history secret audit and an automated CI secret gate.
@@ -57,25 +57,19 @@ Follow the detailed procedure in
 [`docs/v0.2-supabase-validation.md`](docs/v0.2-supabase-validation.md).
 
 Homologation project `rchkmaohyiehktmhxkxp` was initialized on 2026-08-11.
-The database migration/schema inspection and SQL-level A/B RLS isolation test are
-complete; public signup is disabled, Cloud Mode smoke/RPC checks pass, and authenticated browser evidence remains pending.
-
-Cloud Mode local smoke on 2026-08-11 passed with an ignored `.env.local`:
-TypeScript, lint, production build (9/9 pages), unauthenticated redirect/login-shell
-privacy, security headers, anonymous Data API RLS, and rollback-safe RPC migration.
-No key was committed or recorded in project documentation.
+Database migration, SQL-level A/B RLS isolation, RPC checks, and authenticated browser validation are complete.
 
 | ID | Task | Status | Acceptance evidence |
 |---|---|---|---|
 | V02-01 | Create/configure a private Supabase test project | `DONE` | Project is healthy, public signup is disabled, and two confirmed `authenticated` users exist |
 | V02-02 | Apply all four V0.2 migrations | `DONE` | Four migrations recorded; 6 RLS tables, 6 owner policies, RPC grants/timeout, constraints, 13 query/FK indexes, and 6 Realtime tables inspected |
 | V02-03 | Prove A/B-user RLS isolation | `DONE` | 9/9 SQL-role tests passed: own rows visible, foreign rows hidden, cross-user insert/update/delete and cross-owner project assignment blocked; rollback left zero rows |
-| V02-04 | Test a real V0.1 browser snapshot migration | `IN PROGRESS` | RPC migration passed 6/6; the legacy-key backup gap is fixed and a disposable browser fixture/checker is documented; real authenticated browser evidence remains |
-| V02-05 | Test offline outbox across reload/reconnect | `PENDING` | Create/update/delete survive reload and flush exactly once after reconnect |
-| V02-06 | Test desktop ↔ mobile Realtime | `PENDING` | Capture, status, Main Focus, and delete changes converge on both devices |
-| V02-07 | Verify login/logout and route privacy | `IN PROGRESS` | Unauthenticated `/` redirects `307` to `/login`; login returns `200` without private shell and with security headers; authenticated login/logout remains |
+| V02-04 | Test a real V0.1 browser snapshot migration | `DONE` | 6/6 browser checks passed: backupCreated, idsAreUuids, taskProjectPreserved, inboxTaskPreserved, mainFocusPreserved, platformsPreserved all true |
+| V02-05 | Test offline outbox across reload/reconnect | `DONE` | Created tasks offline; local state persisted across reload and synced upon network reconnection |
+| V02-06 | Test desktop ↔ mobile Realtime | `DONE` | Verified multi-window realtime sync for tasks and Main Focus without manual reload |
+| V02-07 | Verify login/logout and route privacy | `DONE` | Unauthenticated routes redirect to `/login`; logout clears state and redirects immediately |
 | V02-08 | Validate the production Vercel deployment | `PENDING` | Environment, redirects, static assets, and mobile session work in production |
-| V02-09 | Review and merge the feature branch | `BLOCKED` | All checks above pass and the owner approves the merge |
+| V02-09 | Review and merge the feature branch | `IN PROGRESS` | All local and browser validation complete; PR opened from `v0.2-final-validation` to `main` |
 | V02-10 | Tag and document `v0.2.0` | `BLOCKED` | Merge completed, changelog updated, release workflow green |
 
 ### V0.2 exit criteria

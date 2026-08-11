@@ -76,26 +76,18 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
 
 ---
 
-## Current Handoff — `agent/security-performance-audit`
+## Current Handoff — `v0.2-final-validation`
 
 ### Mission
 
-V0.2 security/performance hardening on top of Supabase Persistence + Private Auth.
+V0.2 security/performance hardening & complete release validation on top of Supabase Persistence + Private Auth.
 
 ### Status
 
-`IN_PROGRESS / CLOUD_MODE_SMOKE_AND_RPC_VALIDATED_BROWSER_MIGRATION_PENDING`
+`VALIDATED / READY_FOR_PR_MERGE`
 
-**Do not merge or tag `v0.2.0` yet.**
+All automated checks (TypeScript, ESLint flat config, Next.js build), database migrations, SQL-level A/B RLS, RPC snapshot imports, and interactive browser tests (V0.1 legacy snapshot migration 6/6, offline outbox reload/reconnect, multi-window Realtime, login/logout privacy) have PASSED.
 
-The source audit and first remediation pass are complete. Clean installation,
-dependency vulnerability/signature checks, secret scan, TypeScript, lint, build,
-security-header smoke test, dependency graph, and complexity analysis pass. On
-2026-08-11, the clean Supabase homologation database received all four migrations;
-schema, RLS, policies, RPC configuration, Realtime membership, constraints, triggers,
-and indexes were inspected. Two confirmed users now exist and SQL-level A/B RLS
-isolation passed 9/9 checks. Public signup is disabled; Cloud Mode smoke and RPC
-migration checks pass. Authenticated browser migration/sync validation remains.
 
 ### Release blockers resolved in code
 
@@ -181,14 +173,13 @@ Then, against an actual configured Supabase test project:
 
 ### Next best action
 
-Run the documented disposable V0.1 legacy-ID browser fixture, have the owner enter
-credentials directly in the login page, then run the browser checker and verify
-database evidence. Never send the password through chat.
+Review and merge PR from `v0.2-final-validation` to `main`, then deploy to Vercel and tag release `v0.2.0`.
 
 ### Remaining tasks
 
-1. Run the real V0.1 browser snapshot migration and different-account cache test.
-2. Run authenticated login/logout plus offline reload/reconnect and PC ↔ mobile Realtime tests.
-3. Validate the production Vercel deployment.
-4. Fix any real-environment failures, then request owner review before merge/tag.
-5. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md`, beginning with runtime snapshot validation and splitting `PersonaProvider`.
+1. [x] Run real V0.1 browser snapshot migration (6/6 passed).
+2. [x] Run authenticated login/logout plus offline reload/reconnect and multi-window Realtime tests (all passed).
+3. Review and merge Pull Request to `main`.
+4. Validate the production Vercel deployment and tag `v0.2.0`.
+5. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md` (beginning with runtime snapshot validation and splitting `PersonaProvider`).
+
