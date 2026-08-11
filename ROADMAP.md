@@ -70,7 +70,7 @@ No key was committed or recorded in project documentation.
 | V02-01 | Create/configure a private Supabase test project | `DONE` | Project is healthy, public signup is disabled, and two confirmed `authenticated` users exist |
 | V02-02 | Apply all four V0.2 migrations | `DONE` | Four migrations recorded; 6 RLS tables, 6 owner policies, RPC grants/timeout, constraints, 13 query/FK indexes, and 6 Realtime tables inspected |
 | V02-03 | Prove A/B-user RLS isolation | `DONE` | 9/9 SQL-role tests passed: own rows visible, foreign rows hidden, cross-user insert/update/delete and cross-owner project assignment blocked; rollback left zero rows |
-| V02-04 | Test a real V0.1 browser snapshot migration | `IN PROGRESS` | RPC migration passed 6/6 for initial import, idempotency, relationships, Main Focus, platforms, and account isolation; real legacy-ID browser normalization/login remains |
+| V02-04 | Test a real V0.1 browser snapshot migration | `IN PROGRESS` | RPC migration passed 6/6; the legacy-key backup gap is fixed and a disposable browser fixture/checker is documented; real authenticated browser evidence remains |
 | V02-05 | Test offline outbox across reload/reconnect | `PENDING` | Create/update/delete survive reload and flush exactly once after reconnect |
 | V02-06 | Test desktop ↔ mobile Realtime | `PENDING` | Capture, status, Main Focus, and delete changes converge on both devices |
 | V02-07 | Verify login/logout and route privacy | `IN PROGRESS` | Unauthenticated `/` redirects `307` to `/login`; login returns `200` without private shell and with security headers; authenticated login/logout remains |
@@ -102,6 +102,7 @@ Audit branch: `agent/security-performance-audit`
 - [x] Reduce Project↔Task assembly from `O(P×T)` to `O(P+T)`.
 - [x] Reduce outbox storage work from `O(M²)` to `O(M)`.
 - [x] Remove Inbox cyclomatic-complexity warnings and split row/dialog concerns.
+- [x] Make the first Cloud migration back up the eligible V0.1 legacy key before UUID normalization.
 
 ### Next hardening slices
 
