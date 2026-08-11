@@ -52,7 +52,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth
       .getSession()
       .then(({ data: { session }, error }: SessionResult) => {
-        if (error) console.error("Failed to restore auth session:", error);
+        const isAuthSessionMissing =
+          error?.message === "Auth session missing!" ||
+          error?.name === "AuthSessionMissingError" ||
+          (error?.status === 400 && error?.message?.includes("session missing"));
+
+        if (error && !isAuthSessionMissing) {
+          console.error("Failed to restore auth session:", error);
+        }
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);

@@ -228,6 +228,10 @@ The product is personal/single-owner for now.
 
 Automated checks, SQL-level A/B RLS, RPC migration, and authenticated browser validation (V0.1 legacy snapshot migration 6/6, offline outbox reload/reconnect, multi-window Realtime, and login/logout privacy) have all passed. Ready for PR review and merge into `main`.
 
+Pre-release adjustments:
+- Added `public/sw.js` (minimal PWA Service Worker) and client registration to resolve `404` warnings.
+- Filtered normal `Auth session missing!` unauthenticated states in `proxy.ts` and `AuthProvider.tsx` to prevent error-level log noise on Vercel.
+
 ## Current Git workflow
 
 Active feature branch:

@@ -51,7 +51,12 @@ export async function proxy(request: NextRequest) {
     error: authError,
   } = await supabase.auth.getUser();
 
-  if (authError) {
+  const isAuthSessionMissing =
+    authError?.message === "Auth session missing!" ||
+    authError?.name === "AuthSessionMissingError" ||
+    (authError?.status === 400 && authError?.message?.includes("session missing"));
+
+  if (authError && !isAuthSessionMissing) {
     console.error("Supabase proxy session verification failed:", authError.message);
   }
 

@@ -179,7 +179,9 @@ Review and merge PR from `v0.2-final-validation` to `main`, then deploy to Verce
 
 1. [x] Run real V0.1 browser snapshot migration (6/6 passed).
 2. [x] Run authenticated login/logout plus offline reload/reconnect and multi-window Realtime tests (all passed).
-3. Review and merge Pull Request to `main`.
-4. Validate the production Vercel deployment and tag `v0.2.0`.
-5. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md` (beginning with runtime snapshot validation and splitting `PersonaProvider`).
+3. [x] Add `public/sw.js` to eliminate 404 on Service Worker requests.
+4. [x] Filter expected unauthenticated `Auth session missing!` errors in `proxy.ts` and `AuthProvider.tsx` to stop Vercel log pollution.
+5. Review and merge Pull Request to `main`.
+6. Validate the production Vercel deployment and tag `v0.2.0`.
+7. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md` (beginning with runtime snapshot validation and splitting `PersonaProvider`).
 

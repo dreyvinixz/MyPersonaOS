@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import { GlobalQuickCapture } from "@/components/capture/GlobalQuickCapture";
@@ -12,6 +13,12 @@ function AppFrame({ children }: { children: React.ReactNode }) {
   const { isCloudMode, user, loading } = useAuth();
   const { privacyReady } = usePersonaState();
   const isAuthRoute = pathname.startsWith("/login");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator && process.env.NODE_ENV === "production") {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
 
   if (isAuthRoute) return children;
 
