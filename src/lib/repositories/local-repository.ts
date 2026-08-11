@@ -90,7 +90,11 @@ export class LocalRepository {
 
   createBackup(label = "manual", userId?: string): string | null {
     if (typeof window === "undefined") return null;
-    const raw = window.localStorage.getItem(storageKey(userId));
+    // The first cloud migration runs before getState(userId) has copied a V0.1
+    // snapshot into the user-scoped V0.2 key. Fall back to the eligible legacy
+    // candidate so the exact pre-normalization payload remains recoverable.
+    const raw =
+      window.localStorage.getItem(storageKey(userId)) ?? getLegacyCandidate(userId);
     if (!raw) return null;
 
     const scope = userId ? `user_${userId}` : "local";
