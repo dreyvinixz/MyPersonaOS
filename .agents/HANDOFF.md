@@ -76,17 +76,17 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
 
 ---
 
-## Current Handoff — `v0.2-final-validation`
+## Current Handoff — `main` / `v0.2.0`
 
 ### Mission
 
-V0.2 security/performance hardening & complete release validation on top of Supabase Persistence + Private Auth.
+V0.2 production release handoff after Supabase persistence, security/performance hardening, and private-auth validation.
 
 ### Status
 
-`VALIDATED / READY_FOR_PR_MERGE`
+`RELEASED / PRODUCTION_VALIDATED`
 
-All automated checks (TypeScript, ESLint flat config, Next.js build), database migrations, SQL-level A/B RLS, RPC snapshot imports, and interactive browser tests (V0.1 legacy snapshot migration 6/6, offline outbox reload/reconnect, multi-window Realtime, login/logout privacy) have PASSED.
+All automated checks, database/RLS/RPC tests, browser migration/offline/Realtime tests, Vercel deployment checks, and the production login have PASSED.
 
 
 ### Release blockers resolved in code
@@ -118,7 +118,7 @@ All automated checks (TypeScript, ESLint flat config, Next.js build), database m
   `20260811200000_add_tasks_project_id_index.sql`.
 - Remaining unused-index notices are expected on an empty database.
 - SECURITY DEFINER advisor warning is intentional for the atomic authenticated import;
-  SQL-level grants and RLS isolation are proven, while browser RPC behavior remains pending.
+  SQL-level grants, RLS isolation, and authenticated browser RPC behavior are proven.
 - Two confirmed users map to `authenticated`; a rollback-safe 9/9 A/B suite proved
   own-row access and cross-user SELECT/INSERT/UPDATE/DELETE denial across all six tables.
 - Task assignment to another user's project was rejected by the same-owner trigger.
@@ -130,7 +130,7 @@ All automated checks (TypeScript, ESLint flat config, Next.js build), database m
 - The legacy-key backup fix preserves the exact pre-normalization payload and retains
   the cross-user owner-claim guard; a focused in-memory browser-storage test passed.
 
-### Required validation before merge
+### Release validation completed
 
 Follow `docs/v0.2-supabase-validation.md`.
 
@@ -152,16 +152,16 @@ One repeated local build hit a corrupted generated `.next` Turbopack cache and
 passed after that cache was isolated and regenerated. The final clean-cache build
 passed; no source change was needed for that environmental failure.
 
-Then, against an actual configured Supabase test project:
+Against the configured Supabase test project and the Vercel production deployment:
 
-1. all four V0.2 migrations applied and inspected on 2026-08-11;
-2. public signup disabled and two confirmed owner/test users created;
-3. SQL-level A/B RLS isolation passed 9/9 checks on 2026-08-11;
-4. RPC migration behavior passed 6/6; real browser legacy-ID normalization/login remains;
-5. verify `mainFocus`, platforms, relationships, and migration_version;
-6. exercise offline create/update/delete → reload → reconnect;
-7. verify desktop ↔ mobile Realtime including DELETE and Main Focus;
-8. verify logout and unauthenticated route privacy.
+1. all four V0.2 migrations were applied and inspected on 2026-08-11;
+2. public signup was disabled and two confirmed owner/test users were created;
+3. SQL-level A/B RLS isolation passed 9/9 checks;
+4. RPC migration behavior and real browser legacy-ID normalization passed;
+5. `mainFocus`, platforms, relationships, and migration version were verified;
+6. offline create/update/delete survived reload and synchronized after reconnect;
+7. multi-window Realtime including DELETE and Main Focus was verified;
+8. logout, unauthenticated route privacy, production login, and runtime logs were verified.
 
 ### Known V0.2 boundary
 
@@ -173,7 +173,7 @@ Then, against an actual configured Supabase test project:
 
 ### Next best action
 
-Review and merge PR from `v0.2-final-validation` to `main`, then deploy to Vercel and tag release `v0.2.0`.
+Begin V0.3 Core Workflows from the canonical queue in `ROADMAP.md`, starting with maintainability and the highest-value Tasks/Projects slice.
 
 ### Remaining tasks
 
@@ -181,7 +181,7 @@ Review and merge PR from `v0.2-final-validation` to `main`, then deploy to Verce
 2. [x] Run authenticated login/logout plus offline reload/reconnect and multi-window Realtime tests (all passed).
 3. [x] Add `public/sw.js` to eliminate 404 on Service Worker requests.
 4. [x] Filter expected unauthenticated `Auth session missing!` errors in `proxy.ts` and `AuthProvider.tsx` to stop Vercel log pollution.
-5. Review and merge Pull Request to `main`.
-6. Validate the production Vercel deployment and tag `v0.2.0`.
+5. [x] Review and merge Pull Request #5 to `main`.
+6. [x] Validate the production Vercel deployment and prepare tag `v0.2.0`.
 7. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md` (beginning with runtime snapshot validation and splitting `PersonaProvider`).
 

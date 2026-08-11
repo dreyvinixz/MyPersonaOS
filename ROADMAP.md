@@ -4,7 +4,7 @@
 >
 > Product north star: **What deserves attention today?**
 
-This is the canonical view of completed work, the active release gate, and the
+This is the canonical view of completed work, the latest release, and the
 next product slices. Checkboxes mean verified outcomes, not merely code that
 exists on a branch.
 
@@ -22,16 +22,16 @@ exists on a branch.
 | Milestone | Status | Outcome |
 |---|---|---|
 | V0.1 — Personal Foundation | `DONE` | Today, Quick Capture, Inbox, initial domain pages, local persistence, and Oil Slick UI |
-| V0.2 — Private Persistence | `IN VALIDATION` | Supabase Auth/PostgreSQL/RLS, offline outbox, migration, and multi-device Realtime |
+| V0.2 — Private Persistence | `DONE` | Supabase Auth/PostgreSQL/RLS, offline outbox, migration, and multi-device Realtime |
 | V0.3 — Core Workflows | `PLANNED` | Complete Tasks/Projects, content production, and English-learning vertical slices |
 | V0.4 — Daily-Use PWA | `PLANNED` | Installable mobile experience, stronger offline shell, deployment, and operational polish |
 | V0.5 — Personal Orchestrator | `LATER` | Calendar, weekly review, analytics, automation, and optional AI assistance |
 
-## Active release gate — V0.2
+## Released — V0.2
 
-Branch: `v0.2-final-validation`
+Release branch: `main`
 
-Current status: `VALIDATED_PR_PENDING`
+Current status: `RELEASED`
 
 ### Engineering complete
 
@@ -51,7 +51,7 @@ Current status: `VALIDATED_PR_PENDING`
 - [x] Supply-chain pinning for GitHub Actions and npm registry signature checks.
 - [x] Project/task join and outbox complexity reductions.
 
-### Remaining release blockers
+### Release validation evidence
 
 Follow the detailed procedure in
 [`docs/v0.2-supabase-validation.md`](docs/v0.2-supabase-validation.md).
@@ -68,15 +68,15 @@ Database migration, SQL-level A/B RLS isolation, RPC checks, and authenticated b
 | V02-05 | Test offline outbox across reload/reconnect | `DONE` | Created tasks offline; local state persisted across reload and synced upon network reconnection |
 | V02-06 | Test desktop ↔ mobile Realtime | `DONE` | Verified multi-window realtime sync for tasks and Main Focus without manual reload |
 | V02-07 | Verify login/logout and route privacy | `DONE` | Unauthenticated routes redirect to `/login`; logout clears state and redirects immediately |
-| V02-08 | Validate the production Vercel deployment | `PENDING` | Environment, redirects, static assets, and mobile session work in production |
-| V02-09 | Review and merge the feature branch | `IN PROGRESS` | All local and browser validation complete; PR opened from `v0.2-final-validation` to `main` |
-| V02-10 | Tag and document `v0.2.0` | `BLOCKED` | Merge completed, changelog updated, release workflow green |
+| V02-08 | Validate the production Vercel deployment | `DONE` | Cloud Mode active; private routes redirect to login; `/sw.js` returns 200; production login and clean current-deployment logs confirmed |
+| V02-09 | Review and merge the feature branch | `DONE` | PR #5 merged into `main`; production deployment is READY on the validated commit |
+| V02-10 | Tag and document `v0.2.0` | `DONE` | Package metadata, changelog, release documentation, and GitHub release workflow prepared from `main` |
 
 ### V0.2 exit criteria
 
-V0.2 is releasable only when every `V02-*` validation item has evidence, the
-configured-Supabase flows pass, and no personal data or credentials are present
-in the repository.
+All V0.2 exit criteria passed: every `V02-*` item has evidence, the configured
+Supabase flows pass, production authentication is healthy, and no personal data
+or credentials are present in the repository.
 
 ## Engineering health — security and performance
 

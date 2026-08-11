@@ -224,25 +224,27 @@ The product is personal/single-owner for now.
 
 ### V0.2 — Supabase Persistence, RLS & Private Multi-Device Sync
 
-**Engineering status:** `VALIDATED_PR_PENDING`
+**Engineering status:** `RELEASED`
 
-Automated checks, SQL-level A/B RLS, RPC migration, and authenticated browser validation (V0.1 legacy snapshot migration 6/6, offline outbox reload/reconnect, multi-window Realtime, and login/logout privacy) have all passed. Ready for PR review and merge into `main`.
+V0.2 passed automated checks, SQL-level A/B RLS, RPC migration, authenticated browser validation, and production Vercel validation. It is deployed from `main`; production login, private-route redirects, the Service Worker, and current-deployment runtime logs were verified.
 
-Pre-release adjustments:
+Production adjustments:
 - Added `public/sw.js` (minimal PWA Service Worker) and client registration to resolve `404` warnings.
 - Filtered normal `Auth session missing!` unauthenticated states in `proxy.ts` and `AuthProvider.tsx` to prevent error-level log noise on Vercel.
 
 ## Current Git workflow
 
-Active feature branch:
-
-`v0.2-final-validation`
-
-Base:
+Released from:
 
 `main`
 
-Pull Request open on `v0.2-final-validation` -> `main`.
+Production:
+
+`https://my-persona-os.vercel.app`
+
+Release tag:
+
+`v0.2.0`
 
 
 ## Architectural guardrails
