@@ -66,7 +66,7 @@ The initial version uses client-side state (`localStorage`) for fast capture and
 - **Framework**: Next.js 16 (App Router, React 19)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
-- **Persistence (V0.2 validation)**: Supabase (PostgreSQL, Auth, Realtime, Row Level Security)
+- **Persistence (V0.2)**: Supabase (PostgreSQL, Auth, Realtime, Row Level Security)
 - **Deployment**: Vercel & PWA
 - **CI/CD**: GitHub Actions (`ci.yml` & `release.yml`)
 
@@ -74,11 +74,10 @@ The initial version uses client-side state (`localStorage`) for fast capture and
 
 ## Roadmap
 
-See **[ROADMAP.md](ROADMAP.md)** for the canonical task-level roadmap and V0.2
-release checklist.
+See **[ROADMAP.md](ROADMAP.md)** for the canonical task-level roadmap and release history.
 
 - [x] **V0.1 — Bootstrap**: Client-side state, UI foundation, Open Source setup, CI/CD & Documentation
-- [ ] **V0.2 — Persistence (in validation)**: Supabase integration, private auth, PostgreSQL, RLS, offline outbox, cross-device sync
+- [x] **V0.2 — Private Persistence**: Supabase integration, private auth, PostgreSQL, RLS, offline outbox, and cross-device sync
 - [ ] **V0.3 — Workflows**: Interactive task management, content stages, English vocabulary sessions
 - [ ] **V0.4 — Orchestrator**: Calendar integration, AI prioritization, weekly reviews
 
