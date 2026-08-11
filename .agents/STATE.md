@@ -88,6 +88,7 @@ V0.2 migrations:
 - `supabase/migrations/20260807000000_v0_2_schema.sql`
 - `supabase/migrations/20260807001000_v0_2_hardening.sql`
 - `supabase/migrations/20260809000000_security_performance_hardening.sql`
+- `supabase/migrations/20260811200000_add_tasks_project_id_index.sql`
 
 Implemented:
 
@@ -104,7 +105,8 @@ Implemented:
 - common `user_id` / status indexes;
 - Realtime publication includes `user_profiles` and all synchronized domain tables;
 - bounded personal-data fields and a 15-second atomic-import statement timeout;
-- composite owner/newest-first indexes matching all full-state list queries.
+- composite owner/newest-first indexes matching all full-state list queries;
+- covering index for the `tasks.project_id` foreign key.
 
 ## Security/performance audit state
 
@@ -155,9 +157,22 @@ Detailed evidence and residual risks are recorded in
 - `npm run lint` — passed;
 - `npm run build` — passed on Next.js 16.3.0, 9/9 static pages generated.
 
+### Cloud schema validation — 2026-08-11
+
+- Supabase project `rchkmaohyiehktmhxkxp` is `ACTIVE_HEALTHY` and was empty before initialization;
+- all four repository migrations were applied and recorded successfully;
+- six public personal tables exist with RLS enabled and zero initial rows;
+- six authenticated owner policies, all Realtime publication entries, RPC grants,
+  empty `search_path`, 15-second timeout, constraints, triggers, and indexes were inspected;
+- the missing `tasks.project_id` foreign-key index reported by the performance advisor
+  was added through a reproducible fourth migration;
+- the remaining SECURITY DEFINER advisor warning is expected for the authenticated-only
+  atomic import RPC and must be closed with the A/B behavior test, not by weakening the import contract;
+- unused-index information is expected while the clean project contains no workload.
+
 ### Not yet proven / still requires release validation
 
-- migrations applied against a real clean Supabase test project;
+- public signup disabled and owner/temporary test users created in the Supabase test project;
 - RLS A/B-user isolation test;
 - real V0.1 browser snapshot migration test;
 - real offline → reload → reconnect outbox test;
@@ -189,7 +204,7 @@ The product is personal/single-owner for now.
 
 ### V0.2 — Supabase Persistence, RLS & Private Multi-Device Sync
 
-**Engineering status:** `LOCAL_RELEASE_CHECKS_PASSED_CLOUD_VALIDATION_PENDING`
+**Engineering status:** `CLOUD_SCHEMA_APPLIED_AUTH_AND_FLOW_VALIDATION_PENDING`
 
 The release-gate audit found and directly corrected data-loss, synchronization, deletion, migration, Realtime, auth-shell, lint, React lifecycle, and dependency-security issues. Local automated checks now pass. Do not merge/tag V0.2 until the configured-Supabase validation checklist passes.
 
@@ -197,7 +212,7 @@ The release-gate audit found and directly corrected data-loss, synchronization, 
 
 Active feature branch:
 
-`agent/supabase-persistence`
+`agent/security-performance-audit`
 
 Base:
 
