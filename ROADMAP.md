@@ -31,7 +31,7 @@ exists on a branch.
 
 Branch: `agent/security-performance-audit`
 
-Current status: `CLOUD_RLS_VALIDATED_AUTH_AND_FLOW_VALIDATION_PENDING`
+Current status: `CLOUD_AUTH_RLS_VALIDATED_BROWSER_FLOW_PENDING`
 
 ### Engineering complete
 
@@ -58,11 +58,11 @@ Follow the detailed procedure in
 
 Homologation project `rchkmaohyiehktmhxkxp` was initialized on 2026-08-11.
 The database migration/schema inspection and SQL-level A/B RLS isolation test are
-complete; public-signup confirmation and end-to-end browser evidence remain pending.
+complete; public signup is disabled and only end-to-end browser evidence remains pending.
 
 | ID | Task | Status | Acceptance evidence |
 |---|---|---|---|
-| V02-01 | Create/configure a private Supabase test project | `IN PROGRESS` | Project is healthy and two confirmed `authenticated` users exist; public-signup-disabled setting still needs manual confirmation |
+| V02-01 | Create/configure a private Supabase test project | `DONE` | Project is healthy, public signup is disabled, and two confirmed `authenticated` users exist |
 | V02-02 | Apply all four V0.2 migrations | `DONE` | Four migrations recorded; 6 RLS tables, 6 owner policies, RPC grants/timeout, constraints, 13 query/FK indexes, and 6 Realtime tables inspected |
 | V02-03 | Prove A/B-user RLS isolation | `DONE` | 9/9 SQL-role tests passed: own rows visible, foreign rows hidden, cross-user insert/update/delete and cross-owner project assignment blocked; rollback left zero rows |
 | V02-04 | Test a real V0.1 browser snapshot migration | `PENDING` | UUID conversion preserves relationships, Main Focus, platforms, and migration version |
