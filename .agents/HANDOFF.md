@@ -69,6 +69,7 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
   12. Generated the 36-module/69-edge code graph, verified zero cycles, and began maintainability decomposition with Inbox.
   13. Added `docs/audits/security-performance-audit-2026-08-09.md` with evidence, residual risks, and the next hardening queue.
   14. On 2026-08-11, initialized the clean Supabase homologation schema, verified RLS/policies/RPC/Realtime, and added the missing `tasks.project_id` foreign-key index as a fourth migration.
+  15. Confirmed two standard `authenticated` users and ran a rollback-safe A/B RLS suite: 9/9 checks passed and no test rows remained.
 
 ---
 
@@ -80,7 +81,7 @@ V0.2 security/performance hardening on top of Supabase Persistence + Private Aut
 
 ### Status
 
-`IN_PROGRESS / CLOUD_SCHEMA_APPLIED_AUTH_AND_FLOW_VALIDATION_PENDING`
+`IN_PROGRESS / CLOUD_RLS_VALIDATED_AUTH_AND_FLOW_VALIDATION_PENDING`
 
 **Do not merge or tag `v0.2.0` yet.**
 
@@ -89,7 +90,9 @@ dependency vulnerability/signature checks, secret scan, TypeScript, lint, build,
 security-header smoke test, dependency graph, and complexity analysis pass. On
 2026-08-11, the clean Supabase homologation database received all four migrations;
 schema, RLS, policies, RPC configuration, Realtime membership, constraints, triggers,
-and indexes were inspected. Auth configuration and end-to-end flow validation remain.
+and indexes were inspected. Two confirmed users now exist and SQL-level A/B RLS
+isolation passed 9/9 checks. Public-signup confirmation and end-to-end browser flow
+validation remain.
 
 ### Release blockers resolved in code
 
@@ -119,8 +122,12 @@ and indexes were inspected. Auth configuration and end-to-end flow validation re
 - Performance advisor's unindexed-FK finding was fixed by
   `20260811200000_add_tasks_project_id_index.sql`.
 - Remaining unused-index notices are expected on an empty database.
-- SECURITY DEFINER advisor warning is intentional for the atomic authenticated import
-  and remains subject to the A/B behavior test.
+- SECURITY DEFINER advisor warning is intentional for the atomic authenticated import;
+  SQL-level grants and RLS isolation are proven, while browser RPC behavior remains pending.
+- Two confirmed users map to `authenticated`; a rollback-safe 9/9 A/B suite proved
+  own-row access and cross-user SELECT/INSERT/UPDATE/DELETE denial across all six tables.
+- Task assignment to another user's project was rejected by the same-owner trigger.
+- Rollback verification showed zero rows in every personal table after the test.
 
 ### Required validation before merge
 
@@ -147,8 +154,8 @@ passed; no source change was needed for that environmental failure.
 Then, against an actual configured Supabase test project:
 
 1. all four V0.2 migrations applied and inspected on 2026-08-11;
-2. disable public sign-up and create the owner account;
-3. verify RLS isolation with a temporary second test user;
+2. two confirmed owner/test users created; public-signup-disabled setting still needs manual confirmation;
+3. SQL-level A/B RLS isolation passed 9/9 checks on 2026-08-11;
 4. migrate a real V0.1-style local snapshot containing IDs such as `1`, `p1`, `i1`;
 5. verify `mainFocus`, platforms, relationships, and migration_version;
 6. exercise offline create/update/delete → reload → reconnect;
@@ -165,13 +172,13 @@ Then, against an actual configured Supabase test project:
 
 ### Next best action
 
-Disable public signup, create the owner and temporary B user, then run the A/B-user isolation and different-account cache-scope tests.
+Confirm public signup is disabled, then configure Cloud Mode and run the real V0.1 browser snapshot migration with the owner account.
 
 ### Remaining tasks
 
-1. Disable public signup and create the owner and temporary B test users.
-2. Run the A/B-user isolation and different-account browser-cache tests.
-3. Run the V0.1 snapshot migration test.
+1. Confirm public signup is disabled in Supabase Authentication settings.
+2. Configure Cloud Mode environment variables without committing credentials.
+3. Run the real V0.1 browser snapshot migration and different-account cache test.
 4. Run offline reload/reconnect and PC ↔ mobile Realtime tests.
 5. Validate auth privacy and the production Vercel deployment.
 6. Fix any real-environment failures, then request owner review before merge/tag.
