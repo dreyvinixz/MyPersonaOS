@@ -71,6 +71,7 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
   14. On 2026-08-11, initialized the clean Supabase homologation schema, verified RLS/policies/RPC/Realtime, and added the missing `tasks.project_id` foreign-key index as a fourth migration.
   15. Confirmed two standard `authenticated` users and ran a rollback-safe A/B RLS suite: 9/9 checks passed and no test rows remained.
   16. Confirmed public signup is disabled and closed the private Supabase project-setup gate without recording any API key.
+  17. Configured ignored local Cloud Mode, passed TypeScript/lint/build and unauthenticated route/Data API smoke tests, then passed a rollback-safe 6/6 RPC migration suite.
 
 ---
 
@@ -82,7 +83,7 @@ V0.2 security/performance hardening on top of Supabase Persistence + Private Aut
 
 ### Status
 
-`IN_PROGRESS / CLOUD_AUTH_RLS_VALIDATED_BROWSER_FLOW_PENDING`
+`IN_PROGRESS / CLOUD_MODE_SMOKE_AND_RPC_VALIDATED_BROWSER_MIGRATION_PENDING`
 
 **Do not merge or tag `v0.2.0` yet.**
 
@@ -92,8 +93,8 @@ security-header smoke test, dependency graph, and complexity analysis pass. On
 2026-08-11, the clean Supabase homologation database received all four migrations;
 schema, RLS, policies, RPC configuration, Realtime membership, constraints, triggers,
 and indexes were inspected. Two confirmed users now exist and SQL-level A/B RLS
-isolation passed 9/9 checks. Public signup is disabled; end-to-end browser flow
-validation remains.
+isolation passed 9/9 checks. Public signup is disabled; Cloud Mode smoke and RPC
+migration checks pass. Authenticated browser migration/sync validation remains.
 
 ### Release blockers resolved in code
 
@@ -129,6 +130,10 @@ validation remains.
   own-row access and cross-user SELECT/INSERT/UPDATE/DELETE denial across all six tables.
 - Task assignment to another user's project was rejected by the same-owner trigger.
 - Rollback verification showed zero rows in every personal table after the test.
+- Local Cloud Mode with an ignored publishable key passed TypeScript, lint, build (9/9 pages),
+  `307` private-route redirect, login-shell privacy, security headers, and anonymous Data API RLS.
+- RPC migration passed 6/6 for initial import, idempotency, relationships, Main Focus,
+  platforms, cross-account isolation, and the second account's own import; rollback left zero rows.
 
 ### Required validation before merge
 
@@ -157,7 +162,7 @@ Then, against an actual configured Supabase test project:
 1. all four V0.2 migrations applied and inspected on 2026-08-11;
 2. public signup disabled and two confirmed owner/test users created;
 3. SQL-level A/B RLS isolation passed 9/9 checks on 2026-08-11;
-4. migrate a real V0.1-style local snapshot containing IDs such as `1`, `p1`, `i1`;
+4. RPC migration behavior passed 6/6; real browser legacy-ID normalization/login remains;
 5. verify `mainFocus`, platforms, relationships, and migration_version;
 6. exercise offline create/update/delete → reload → reconnect;
 7. verify desktop ↔ mobile Realtime including DELETE and Main Focus;
@@ -173,13 +178,12 @@ Then, against an actual configured Supabase test project:
 
 ### Next best action
 
-Configure Cloud Mode using the project URL and publishable key in ignored environment storage, then run the real V0.1 browser snapshot migration with the owner account.
+Run the real V0.1 legacy-ID browser snapshot migration by having the owner enter credentials directly in the login page, then verify database and cache evidence.
 
 ### Remaining tasks
 
-1. Configure Cloud Mode environment variables without committing credentials.
-2. Run the real V0.1 browser snapshot migration and different-account cache test.
-3. Run offline reload/reconnect and PC ↔ mobile Realtime tests.
-4. Validate auth privacy and the production Vercel deployment.
-5. Fix any real-environment failures, then request owner review before merge/tag.
-6. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md`, beginning with runtime snapshot validation and splitting `PersonaProvider`.
+1. Run the real V0.1 browser snapshot migration and different-account cache test.
+2. Run authenticated login/logout plus offline reload/reconnect and PC ↔ mobile Realtime tests.
+3. Validate the production Vercel deployment.
+4. Fix any real-environment failures, then request owner review before merge/tag.
+5. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md`, beginning with runtime snapshot validation and splitting `PersonaProvider`.
