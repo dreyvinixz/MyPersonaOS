@@ -100,7 +100,7 @@ Audit branch: `agent/security-performance-audit`
 
 ### Next hardening slices
 
-- [ ] `SEC-10` Finish authenticated browser migration, Auth rate-limit, and different-account cache-isolation validation; migration chain, SQL-level A/B RLS, anonymous Data API, and RPC behavior are proven.
+- [ ] `SEC-10` Finish Auth rate-limit validation (authenticated browser migration and different-account cache-isolation have been validated); migration chain, SQL-level A/B RLS, anonymous Data API, and RPC behavior are proven.
 - [ ] `SEC-11` Add runtime schema validation for versioned LocalStorage snapshots/outbox entries.
 - [ ] `SEC-12` Evaluate encrypted-at-rest browser persistence for untrusted/shared devices.
 - [ ] `SEC-13` Replace CSP inline allowances with nonces/hashes if the production Next.js path supports it cleanly.
