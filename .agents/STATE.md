@@ -174,6 +174,20 @@ Detailed evidence and residual risks are recorded in
   atomic import RPC; its browser import behavior remains to be validated without weakening the contract;
 - unused-index information is expected while the clean project contains no workload.
 
+### Cloud Mode smoke and RPC validation — 2026-08-11
+
+- local Cloud Mode uses the modern publishable key through ignored `.env.local`;
+  the key value was not committed or recorded in documentation;
+- `npx tsc --noEmit`, `npm run lint`, and `npm run build` passed with Cloud Mode enabled;
+- the production build generated 9/9 static pages and retained the auth proxy;
+- unauthenticated `/` returned `307` to `/login`; login returned `200` without
+  private shell content and with CSP/MIME/referrer/permissions headers;
+- an anonymous Supabase client request returned `200` with zero visible project rows,
+  proving the publishable key reaches the Data API while RLS denies private data;
+- rollback-safe RPC validation passed 6/6 checks: first import, idempotent retry,
+  relationships, Main Focus, platforms, B-account isolation, and B-owned import;
+- rollback verification again left all six personal tables at zero rows.
+
 ### Not yet proven / still requires release validation
 
 - real V0.1 browser snapshot migration test;
@@ -206,7 +220,7 @@ The product is personal/single-owner for now.
 
 ### V0.2 — Supabase Persistence, RLS & Private Multi-Device Sync
 
-**Engineering status:** `CLOUD_AUTH_RLS_VALIDATED_BROWSER_FLOW_PENDING`
+**Engineering status:** `CLOUD_MODE_SMOKE_AND_RPC_VALIDATED_BROWSER_MIGRATION_PENDING`
 
 The release-gate audit found and directly corrected data-loss, synchronization, deletion, migration, Realtime, auth-shell, lint, React lifecycle, and dependency-security issues. Local automated checks now pass. Do not merge/tag V0.2 until the configured-Supabase validation checklist passes.
 
