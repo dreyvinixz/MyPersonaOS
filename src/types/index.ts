@@ -13,6 +13,17 @@ export type ContentStage =
 
 export type ContentBrand = "codetoday" | "personal" | "quantbase";
 
+export type InboxItemStatus = "pending" | "archived" | "converted";
+export type InboxItemType = "text" | "link" | "audio" | "image";
+
+export type SyncStatus =
+  | "initializing"
+  | "local"
+  | "syncing"
+  | "synced"
+  | "offline"
+  | "error";
+
 export interface Task {
   id: string;
   title: string;
@@ -22,6 +33,8 @@ export interface Task {
   dueDate?: string;
   projectId?: string;
   createdAt: string;
+  completedAt?: string;
+  updatedAt: string;
 }
 
 export interface Project {
@@ -32,6 +45,7 @@ export interface Project {
   deadline?: string;
   tasks: Task[];
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ContentPiece {
@@ -42,14 +56,22 @@ export interface ContentPiece {
   platforms?: string[];
   notes?: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface InboxItem {
   id: string;
   content: string;
-  type: "text" | "link" | "audio" | "image";
+  type: InboxItemType;
+  status: InboxItemStatus;
+  convertedToType?: "task" | "project";
+  convertedToId?: string;
   createdAt: string;
-  processed: boolean;
+  processedAt?: string;
+  updatedAt: string;
+
+  /** @deprecated Read only for V0.1 localStorage compatibility; new code uses status. */
+  processed?: boolean;
 }
 
 export interface EnglishWord {
@@ -60,6 +82,16 @@ export interface EnglishWord {
   masteryLevel: number; // 1-5
   lastReviewedAt?: string;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserProfile {
+  id: string;
+  settings?: Record<string, unknown>;
+  migrationVersion: number;
+  localImportedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PersonaState {

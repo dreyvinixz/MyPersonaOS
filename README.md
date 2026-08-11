@@ -20,10 +20,13 @@ Explore the project documentation in the **[docs/](docs/)** directory:
 - 📜 **[Changelog & Releases](CHANGELOG.md)** — Release notes and versioning history.
 - 🤝 **[Contributing Guidelines](CONTRIBUTING.md)** — Setup, PR process, and community standards.
 - 🤖 **[AI Agent Rules (AGENTS.md)](AGENTS.md)** — Mandates and entry points for AI pair programming.
+- 🗺️ **[Product Roadmap](ROADMAP.md)** — Active release gate, verified progress, and next vertical slices.
 
 ---
 
 ## Getting Started
+
+**Requirement:** Node.js 20.9 or newer.
 
 ### Quick Start (Local Development)
 
@@ -60,10 +63,10 @@ The initial version uses client-side state (`localStorage`) for fast capture and
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 15 (App Router, React 19)
+- **Framework**: Next.js 16 (App Router, React 19)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
-- **Persistence (Planned V0.2)**: Supabase (PostgreSQL, Auth, Storage, Row Level Security)
+- **Persistence (V0.2 validation)**: Supabase (PostgreSQL, Auth, Realtime, Row Level Security)
 - **Deployment**: Vercel & PWA
 - **CI/CD**: GitHub Actions (`ci.yml` & `release.yml`)
 
@@ -71,8 +74,11 @@ The initial version uses client-side state (`localStorage`) for fast capture and
 
 ## Roadmap
 
+See **[ROADMAP.md](ROADMAP.md)** for the canonical task-level roadmap and V0.2
+release checklist.
+
 - [x] **V0.1 — Bootstrap**: Client-side state, UI foundation, Open Source setup, CI/CD & Documentation
-- [ ] **V0.2 — Persistence**: Supabase integration, private auth, PostgreSQL, RLS, cross-device sync
+- [ ] **V0.2 — Persistence (in validation)**: Supabase integration, private auth, PostgreSQL, RLS, offline outbox, cross-device sync
 - [ ] **V0.3 — Workflows**: Interactive task management, content stages, English vocabulary sessions
 - [ ] **V0.4 — Orchestrator**: Calendar integration, AI prioritization, weekly reviews
 

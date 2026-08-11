@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { ClientShell } from "@/components/layout/ClientShell";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -43,12 +42,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${jakarta.variable} ${mono.variable}`}>
       <body className="font-sans antialiased selection:bg-[var(--accent-dim)] selection:text-white">
-        <ClientShell>
-          <div className="app-shell flex h-screen overflow-hidden">
-            <Sidebar />
-            <main className="app-main flex-1 overflow-y-auto">{children}</main>
-          </div>
-        </ClientShell>
+        <ClientShell>{children}</ClientShell>
       </body>
     </html>
   );

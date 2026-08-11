@@ -20,6 +20,7 @@ Welcome to the **MyPersonaOS** documentation center.
 - **[Contributing Guide](file:///d:/MyPersonaOS/CONTRIBUTING.md)**: Developer setup, guidelines, and AI agent workflow.
 - **[AI Agent Entry Point](file:///d:/MyPersonaOS/AGENTS.md)**: Mandatory rules and context for AI agents working in this codebase.
 - **[Changelog](file:///d:/MyPersonaOS/CHANGELOG.md)**: Version release history and semantic versioning logs.
+- **[Security & Performance Audit — 2026-08-09](audits/security-performance-audit-2026-08-09.md)**: Source security, SQL injection, secrets, attack controls, code graph, complexity, and remediation evidence.
 
 ---
 

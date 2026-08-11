@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePersonaState } from "@/lib/storage";
+import { createEntityId } from "@/lib/ids";
 import { QUICK_CAPTURE_OPEN_EVENT } from "@/lib/ui-events";
+import { PERSONA_INPUT_LIMITS } from "@/lib/persona-state";
 import {
   ArrowRight,
   Image,
@@ -38,23 +40,38 @@ export function GlobalQuickCapture() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { updateState, mounted } = usePersonaState();
 
+  const openCapture = useCallback(() => {
+    setValue("");
+    setSelected("text");
+    setJustCaptured(false);
+    setOpen(true);
+  }, []);
+
+  const closeCapture = useCallback(() => {
+    setOpen(false);
+    setValue("");
+    setSelected("text");
+    setJustCaptured(false);
+  }, []);
+
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setOpen((previous) => !previous);
+        if (open) closeCapture();
+        else openCapture();
       }
 
       if (event.key === "Escape" && open) {
         event.preventDefault();
-        setOpen(false);
+        closeCapture();
       }
     },
-    [open]
+    [closeCapture, open, openCapture]
   );
 
   useEffect(() => {
-    const handleOpenRequest = () => setOpen(true);
+    const handleOpenRequest = () => openCapture();
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener(QUICK_CAPTURE_OPEN_EVENT, handleOpenRequest);
@@ -63,17 +80,12 @@ export function GlobalQuickCapture() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener(QUICK_CAPTURE_OPEN_EVENT, handleOpenRequest);
     };
-  }, [handleKeyDown]);
+  }, [handleKeyDown, openCapture]);
 
   useEffect(() => {
-    if (open) {
-      const timeout = setTimeout(() => inputRef.current?.focus(), 80);
-      return () => clearTimeout(timeout);
-    }
-
-    setValue("");
-    setSelected("text");
-    setJustCaptured(false);
+    if (!open) return;
+    const timeout = setTimeout(() => inputRef.current?.focus(), 80);
+    return () => clearTimeout(timeout);
   }, [open]);
 
   if (!mounted) return null;
@@ -82,12 +94,14 @@ export function GlobalQuickCapture() {
     const content = value.trim();
     if (!content) return;
 
+    const iso = new Date().toISOString();
     const newItem = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: createEntityId(),
       content,
       type: selected,
-      createdAt: new Date().toISOString(),
-      processed: false,
+      status: "pending" as const,
+      createdAt: iso,
+      updatedAt: iso,
     };
 
     updateState((previous) => ({
@@ -112,11 +126,10 @@ export function GlobalQuickCapture() {
 
   return (
     <>
-      {/* Mobile-first global trigger. Desktop users retain Ctrl/Cmd+K. */}
       {!open && (
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={openCapture}
           className="lg:hidden fixed right-4 bottom-4 z-[900] h-12 w-12 rounded-full flex items-center justify-center shadow-2xl transition-transform active:scale-95"
           style={{
             background: "var(--accent)",
@@ -133,14 +146,14 @@ export function GlobalQuickCapture() {
         <div
           className="fixed inset-0 z-[998] transition-opacity duration-200"
           style={{ background: "rgba(0,0,0,0.60)", backdropFilter: "blur(6px)" }}
-          onClick={() => setOpen(false)}
+          onClick={closeCapture}
         />
       )}
 
       {open && (
         <div
           className="fixed inset-0 z-[999] flex items-start justify-center px-3 pt-[12vh] sm:pt-[18vh]"
-          onClick={() => setOpen(false)}
+          onClick={closeCapture}
         >
           <div
             className="w-full max-w-[540px] rounded-2xl border shadow-2xl overflow-hidden animate-modal-in"
@@ -183,7 +196,7 @@ export function GlobalQuickCapture() {
                 </kbd>
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={closeCapture}
                   className="p-1 rounded-md transition-colors hover:opacity-80"
                   style={{ color: "var(--text-muted)" }}
                   aria-label="Fechar Quick Capture"
@@ -237,6 +250,7 @@ export function GlobalQuickCapture() {
               <textarea
                 ref={inputRef}
                 value={value}
+                maxLength={PERSONA_INPUT_LIMITS.inboxContent}
                 onChange={(event) => setValue(event.target.value)}
                 onKeyDown={handleTextareaKeyDown}
                 placeholder={

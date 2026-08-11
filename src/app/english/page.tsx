@@ -35,7 +35,9 @@ export default function EnglishPage() {
               </div>
               <p className="text-sm mb-1" style={{ color: "var(--text)" }}>{word.definition}</p>
               {word.example && (
-                <p className="text-xs italic" style={{ color: "var(--text-muted)" }}>"{word.example}"</p>
+                <p className="text-xs italic" style={{ color: "var(--text-muted)" }}>
+                  &ldquo;{word.example}&rdquo;
+                </p>
               )}
             </li>
           ))}

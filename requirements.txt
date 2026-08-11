@@ -1,2 +1,2 @@
 # Python dependencies for MyPersonaOS scripts (e.g., ci_watch.py)
-requests>=2.31.0
+requests==2.34.2

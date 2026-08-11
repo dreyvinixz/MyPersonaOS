@@ -4,159 +4,252 @@
 
 ## Product identity
 
-**Name:** MyPersonaOS
-
-**Purpose:** a private personal operating system that helps its owner capture ideas, decide what matters today, execute projects, create content, and learn consistently.
-
-**Core principle:** the app should reduce cognitive load and make action easier. `Today` is the primary surface.
+**Name:** MyPersonaOS  
+**Purpose:** a private personal operating system that helps its owner capture ideas, decide what matters today, execute projects, create content, and learn consistently.  
+**Core principle:** reduce cognitive load and make action easier. `Today` is the primary surface.
 
 ## Product domains
 
-### Today
+- **Today** — main focus, today's tasks, progress, quick capture, module summaries.
+- **Inbox** — low-friction capture first; organization later.
+- **Tasks & Projects** — direction: `Goals → Projects → Tasks → Today`.
+- **Content** — CodeToday, Personal, Quant Base; master-content-first pipeline.
+- **English** — evolving personal learning method and vocabulary loop.
 
-Daily command center:
-
-- main focus;
-- tasks for today;
-- progress;
-- quick capture;
-- summaries of active areas.
-
-### Inbox
-
-Fast, low-friction capture. Organization can happen later.
-
-### Tasks & Projects
-
-Hierarchy direction:
-
-`Goals → Projects → Tasks → Today`
-
-### Content
-
-Three identities are currently planned:
-
-- **CodeToday** — programming/building/learning content; English-first.
-- **Personal** — technology, science, career, ideas, motivation, and personal topics.
-- **Quant Base** — institutional/professional content.
-
-Content should be modeled around a **master content idea** that can produce platform-specific derivatives rather than treating every social post as unrelated work.
-
-Pipeline direction:
+Content pipeline direction:
 
 `Idea → Research → Script → Record → Edit → Thumbnail → Schedule → Published → Analyze`
 
-### English
-
-A personal learning system whose method evolves through use.
-
-Initial learning loop direction:
+English loop direction:
 
 `Listen + Read → Read Aloud → Pronunciation → Comprehension → Vocabulary → Retell → Review`
 
-The method should be versionable and measurable over time.
+## Technical foundation
 
-## Technical direction
-
-Current foundation:
-
-- Next.js
+- Next.js 16.3 + App Router + Turbopack production build
+- React 19
 - TypeScript
-- App Router
 - Tailwind CSS
+- Oil Slick visual system
+- Supabase PostgreSQL/Auth/RLS/Realtime in V0.2 branch
+- PWA-first direction; Vercel deployment planned
 
-Planned infrastructure:
+## V0.2 persistence architecture
 
-- Supabase PostgreSQL
-- Supabase Auth
-- Row Level Security
-- Supabase Storage when needed
-- Vercel deployment
-- PWA-first mobile experience
+```text
+UI
+ │
+ ▼
+PersonaProvider (single shared state)
+ │
+ ├───────────────┐
+ ▼               ▼
+LocalRepository  SupabaseRepository
+ │               │
+localStorage     PostgreSQL + RLS
+ │               │
+ └── Outbox ─────┘
+                 │
+              Realtime
+```
 
-## Privacy/security direction
+### Local Mode
 
-The product is personal-only for now.
+If Supabase environment variables are absent, the app uses `LocalRepository` only and remains fully usable without authentication.
 
-- No public signup by default.
-- Data should be private to the owner.
-- Never commit secrets.
-- Any Supabase tables containing personal data must use appropriate RLS before being considered production-ready.
+### Cloud Mode
+
+If Supabase is configured:
+
+- unauthenticated app routes are protected;
+- `/login` is isolated from application chrome;
+- auth uses Supabase cookie-based SSR support;
+- `PersonaProvider` is the single shared client state;
+- mutations are saved optimistically to the local cache and represented as durable outbox operations;
+- the outbox performs diff-based cloud upserts/deletes;
+- failed operations remain queued;
+- Realtime triggers a debounced authoritative cloud refresh after pending local operations are flushed.
+
+## V0.2 migration behavior
+
+First Cloud Mode initialization:
+
+1. keep a browser backup of the pre-migration V0.1 snapshot;
+2. normalize legacy IDs such as `1`, `p1`, `i1` to UUIDs while preserving relationships;
+3. call the atomic `import_local_snapshot(jsonb)` RPC;
+4. if Cloud already contains user data, Cloud is the base source of truth;
+5. if migration fails, preserve local state and do **not** fetch an empty/partial cloud snapshot over it;
+6. set `migration_version = 1` only after the transaction's explicit migration/cloud-wins path completes.
+
+The backup lookup must fall back to the eligible V0.1/V0.2 local candidate when
+the user-scoped V0.2 key does not exist yet. The owner-claim guard still rejects
+a legacy candidate claimed by a different authenticated user.
+
+## Database/security state
+
+V0.2 migrations:
+
+- `supabase/migrations/20260807000000_v0_2_schema.sql`
+- `supabase/migrations/20260807001000_v0_2_hardening.sql`
+- `supabase/migrations/20260809000000_security_performance_hardening.sql`
+- `supabase/migrations/20260811200000_add_tasks_project_id_index.sql`
+
+Implemented:
+
+- UUID primary keys;
+- automatic `updated_at` triggers;
+- domain check constraints;
+- `content_pieces.platforms text[]`;
+- explicit Inbox statuses and conversion lineage;
+- RLS on all personal tables;
+- profile policy based on `auth.uid() = id`;
+- domain policies based on `auth.uid() = user_id`;
+- hardened `SECURITY DEFINER` migration RPC with empty `search_path` and restricted EXECUTE grants;
+- task → project same-owner enforcement trigger;
+- common `user_id` / status indexes;
+- Realtime publication includes `user_profiles` and all synchronized domain tables;
+- bounded personal-data fields and a 15-second atomic-import statement timeout;
+- composite owner/newest-first indexes matching all full-state list queries;
+- covering index for the `tasks.project_id` foreign key.
+
+## Security/performance audit state
+
+The 2026-08-09 source/history audit found no high-confidence committed secret,
+raw SQL injection path, dangerous HTML sink, circular dependency, or known npm
+vulnerability. The audit branch adds:
+
+- a CI/release tracked-file secret scanner and npm registry signature verification;
+- full-SHA GitHub Action pinning and release input validation;
+- browser CSP/security headers and disabled Next.js technology disclosure;
+- authenticated-user-scoped Cloud browser cache with privacy gating;
+- empty new-profile state instead of hardcoded personal/demo seeds;
+- UI/PostgreSQL input bounds and import RPC timeout;
+- `O(P+T)` Project↔Task assembly and `O(M)` outbox storage processing;
+- initial large-component decomposition beginning with Inbox.
+
+Detailed evidence and residual risks are recorded in
+`docs/audits/security-performance-audit-2026-08-09.md`.
 
 ## Current implementation status
 
 ### Exists
 
-- repository initialized;
-- `Today` command center (Main Focus, DateClock, Today Tasks, Quick Capture, Module Summaries);
-- client-side reactive `localStorage` state management (`usePersonaState`);
-- interactive Inbox, Tasks, Projects, Content Studio, and English Lab views;
-- AI collaboration documentation under `.agents/` and skills bank;
-- open-source files (`LICENSE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `.env.example`);
-- GitHub Actions CI/CD workflows (`ci.yml`, `release.yml`) with automated diagnostic log capture and artifact upload on build failure;
-- Python CI monitoring CLI script (`scripts/ci_watch.py` / `npm run ci:watch`) to monitor Actions runs, download logs, and extract categorized errors locally;
-- documentation suite under `docs/` (`about.md`, `architecture.md`, `README.md`), GitHub Wiki pages (`docs/Wiki/` with `Home.md`, `Architecture.md`, `_Sidebar.md`, `_Footer.md`), and `CHANGELOG.md`.
+- repository/open-source guardrails and `.agents/` skills/handoff system;
+- Today command center;
+- Global Quick Capture (`Ctrl/Cmd+K`) and mobile trigger;
+- Inbox conversion/archive/delete flow;
+- Tasks/Projects/Content/English initial domain pages;
+- Oil Slick design system;
+- private Auth UI + Next.js `proxy.ts` auth boundary;
+- shared PersonaProvider;
+- LocalRepository + SupabaseRepository;
+- durable diff-based cloud outbox including deletes;
+- legacy V0.1 → V0.2 UUID-safe migration;
+- centralized debounced Realtime synchronization;
+- sync UI states: `initializing`, `local`, `syncing`, `synced`, `offline`, `error`;
+- GitHub Actions typecheck/build workflow;
+- ESLint 9 flat configuration with Next.js and strict React Hooks rules;
+- dependency security baseline at zero known `npm audit` vulnerabilities as of 2026-08-09;
+- detailed V0.2 release validation checklist at `docs/v0.2-supabase-validation.md`;
+- canonical milestone/task tracking in `ROADMAP.md`.
 
+### Local release checks — 2026-08-09
 
+- `npm ci --cache /tmp/...` — passed;
+- `npm audit --audit-level=moderate` — passed, zero known vulnerabilities;
+- `npx tsc --noEmit` — passed;
+- `npm run lint` — passed;
+- `npm run build` — passed on Next.js 16.3.0, 9/9 static pages generated.
 
-### Not yet reliable/complete
+### Cloud schema validation — 2026-08-11
 
-- Supabase PostgreSQL database (V0.2);
-- private authentication & RLS policies;
-- cross-device cloud sync;
-- full PWA offline service worker caching;
-- production Vercel deployment;
+- Supabase project `rchkmaohyiehktmhxkxp` is `ACTIVE_HEALTHY` and was empty before initialization;
+- all four repository migrations were applied and recorded successfully;
+- six public personal tables exist with RLS enabled and zero initial rows;
+- six authenticated owner policies, all Realtime publication entries, RPC grants,
+  empty `search_path`, 15-second timeout, constraints, triggers, and indexes were inspected;
+- the missing `tasks.project_id` foreign-key index reported by the performance advisor
+  was added through a reproducible fourth migration;
+- public signup is disabled and two confirmed, non-banned users both correctly map to the standard `authenticated` role;
+- SQL-level A/B RLS validation passed 9/9 checks across all six personal tables, including
+  cross-user SELECT/INSERT/UPDATE/DELETE denial and task→foreign-project rejection;
+- the validation ran inside a transaction and `ROLLBACK` left all six personal tables at zero rows;
+- the remaining SECURITY DEFINER advisor warning is expected for the authenticated-only
+  atomic import RPC; its browser import behavior remains to be validated without weakening the contract;
+- unused-index information is expected while the clean project contains no workload.
+
+### Cloud Mode smoke and RPC validation — 2026-08-11
+
+- local Cloud Mode uses the modern publishable key through ignored `.env.local`;
+  the key value was not committed or recorded in documentation;
+- `npx tsc --noEmit`, `npm run lint`, and `npm run build` passed with Cloud Mode enabled;
+- the production build generated 9/9 static pages and retained the auth proxy;
+- unauthenticated `/` returned `307` to `/login`; login returned `200` without
+  private shell content and with CSP/MIME/referrer/permissions headers;
+- an anonymous Supabase client request returned `200` with zero visible project rows,
+  proving the publishable key reaches the Data API while RLS denies private data;
+- rollback-safe RPC validation passed 6/6 checks: first import, idempotent retry,
+  relationships, Main Focus, platforms, B-account isolation, and B-owned import;
+- rollback verification again left all six personal tables at zero rows.
+
+### Not yet proven / still requires release validation
+
+- real V0.1 browser snapshot migration test;
+- real offline → reload → reconnect outbox test;
+- PC ↔ mobile Realtime verification including DELETE and Main Focus;
+- production Vercel deployment.
+
+### Outside V0.2 scope
+
+- encrypted browser cache/outbox at rest;
+- collaborative/field-level conflict resolution (V0.2 is last-write-wins);
+- public multi-user/SaaS behavior;
+- advanced PWA offline asset caching;
 - AI orchestrator API integration.
 
+## Privacy/security direction
+
+The product is personal/single-owner for now.
+
+- Public sign-up must be disabled in Supabase Authentication settings.
+- Source code and user data are separate: repository is public, data remains local/private cloud.
+- Never commit secrets or `.env.local`.
+- RLS is mandatory for personal tables.
+- Cloud app content must not render before authenticated session resolution.
+- Browser cache is currently trusted-device storage and is not encrypted at rest.
+- Cloud cache keys are scoped to the authenticated user; the legacy generic snapshot
+  can be claimed by only one user ID and private content stays gated during scope changes.
 
 ## Current milestone
 
-### V0.1 — usable personal foundation
+### V0.2 — Supabase Persistence, RLS & Private Multi-Device Sync
 
-Goal: make the system useful enough to open every day.
+**Engineering status:** `VALIDATED_PR_PENDING`
 
-Priority order:
-
-1. functional Quick Capture;
-2. Inbox;
-3. Today tasks;
-4. Projects;
-5. Content Studio;
-6. English Lab;
-7. PWA shell;
-8. private persistence and sync.
+Automated checks, SQL-level A/B RLS, RPC migration, and authenticated browser validation (V0.1 legacy snapshot migration 6/6, offline outbox reload/reconnect, multi-window Realtime, and login/logout privacy) have all passed. Ready for PR review and merge into `main`.
 
 ## Current Git workflow
 
-Active feature development is on:
+Active feature branch:
 
-`agent/quick-capture-inbox`
+`v0.2-final-validation`
 
-against:
+Base:
 
 `main`
 
-(The initial bootstrap branch `agent/bootstrap-v0.1` has been merged into `main`).
+Pull Request open on `v0.2-final-validation` -> `main`.
 
-
-## Known validation constraint
-
-During initial bootstrap, the execution environment available to one agent could not perform a complete npm install/build because its internal npm registry lacked standard packages. This is an environment-specific historical blocker, **not evidence that the project builds or fails elsewhere**.
-
-Future agents should retry normal validation in their own environment.
-
-## Open-Source & Community Directives
-
-- **Open-Source License**: Distributed under the MIT License (`LICENSE`).
-- **Public Code, Private Data**: App source code is public and open source; user data remains local or secured via private Supabase RLS policies.
-- **Environment & Secrets Guardrails**: Secrets and local environment configs (`.env.local`) are excluded by `.gitignore`. Template provided in `.env.example`.
-- **Contributor Guidelines**: Open-source contributors and AI agents follow guidelines detailed in `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `AGENTS.md`.
 
 ## Architectural guardrails
 
 - Build working vertical slices before advanced orchestration.
-- Prefer one web/PWA codebase before introducing a separate native mobile app.
-- Avoid premature multi-user/SaaS architecture.
-- Keep domain models explicit enough to migrate from temporary local state to PostgreSQL.
-- AI should assist decisions and organization; it should not become a dependency for basic app usability.
-
+- Keep exactly one shared Persona state provider in the client app.
+- Never report `Cloud synced` when a Supabase operation returned an error.
+- Never overwrite local state with cloud after a failed first migration.
+- Persist cloud mutations before attempting network delivery.
+- Prefer diff-based synchronization over full-state rewrites.
+- Keep database migrations and RLS in Git as the schema source of truth.
+- Prefer one web/PWA codebase before native mobile.
+- Avoid premature SaaS complexity.
+- AI may assist decisions/organization but must not be required for basic app usability.

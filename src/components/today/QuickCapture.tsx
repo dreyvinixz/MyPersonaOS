@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Inbox as InboxIcon, Zap } from "lucide-react";
 import { usePersonaState } from "@/lib/storage";
 import { openQuickCapture } from "@/lib/ui-events";
+import { isInboxItemPending } from "@/lib/inbox";
 
 export function QuickCapture() {
   const { state, mounted } = usePersonaState();
@@ -11,11 +12,9 @@ export function QuickCapture() {
   if (!mounted) return null;
 
   const recentCaptures = state.inboxItems
-    .filter((item) => !item.processed)
+    .filter(isInboxItemPending)
     .slice(0, 4);
-  const unprocessedCount = state.inboxItems.filter(
-    (item) => !item.processed
-  ).length;
+  const unprocessedCount = state.inboxItems.filter(isInboxItemPending).length;
 
   return (
     <div

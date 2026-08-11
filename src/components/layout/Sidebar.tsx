@@ -10,10 +10,16 @@ import {
   Video,
   BookOpen,
   Zap,
+  LogOut,
+  RefreshCw,
+  HardDrive,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePersonaState } from "@/lib/storage";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { openQuickCapture } from "@/lib/ui-events";
+import type { SyncStatus } from "@/types";
 
 const nav = [
   { href: "/", label: "Today", icon: Home },
@@ -24,12 +30,60 @@ const nav = [
   { href: "/english", label: "English", icon: BookOpen },
 ];
 
+function SyncIndicator({ status }: { status: SyncStatus }) {
+  switch (status) {
+    case "synced":
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-[var(--green)]">
+          <span className="w-2 h-2 rounded-full bg-[var(--green)] animate-pulse" />
+          <span>Cloud synced</span>
+        </div>
+      );
+    case "syncing":
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-[var(--accent-hover)]">
+          <RefreshCw size={12} className="animate-spin" />
+          <span>Syncing...</span>
+        </div>
+      );
+    case "local":
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-[var(--text-subtle)]">
+          <HardDrive size={12} />
+          <span>Local mode</span>
+        </div>
+      );
+    case "offline":
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-[var(--amber)]">
+          <AlertTriangle size={12} />
+          <span>Offline</span>
+        </div>
+      );
+    case "error":
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-[var(--red)]">
+          <AlertTriangle size={12} />
+          <span>Sync error</span>
+        </div>
+      );
+    default:
+      return (
+        <div className="flex items-center gap-1.5 text-xs text-[var(--text-subtle)]">
+          <RefreshCw size={12} className="animate-spin" />
+          <span>Initializing...</span>
+        </div>
+      );
+  }
+}
+
 export function Sidebar() {
   const pathname = usePathname();
-  const { state, mounted } = usePersonaState();
+  const { state, syncStatus, mounted } = usePersonaState();
+  const { user, isCloudMode, signOut } = useAuth();
 
   const inboxCount = mounted
-    ? state.inboxItems.filter((item) => !item.processed).length
+    ? state.inboxItems.filter((item) => item.status === "pending").length
     : 0;
 
   return (
@@ -40,6 +94,7 @@ export function Sidebar() {
         borderColor: "var(--border)",
       }}
     >
+      {/* Brand Logo */}
       <div
         className="flex items-center gap-3 px-4 py-5 border-b"
         style={{ borderColor: "var(--border)" }}
@@ -51,13 +106,14 @@ export function Sidebar() {
           <Zap size={16} strokeWidth={2.5} />
         </div>
         <span
-          className="hidden lg:block text-sm font-semibold tracking-tight"
+          className="hidden lg:block text-sm font-bold tracking-tight"
           style={{ color: "var(--text)" }}
         >
           MyPersonaOS
         </span>
       </div>
 
+      {/* Quick Capture Hint */}
       <div className="px-2 pt-3 pb-1 hidden lg:block">
         <button
           type="button"
@@ -83,6 +139,7 @@ export function Sidebar() {
         </button>
       </div>
 
+      {/* Navigation Links */}
       <nav className="flex flex-col gap-1 p-2 flex-1 mt-1">
         {nav.map(({ href, label, icon: Icon, badge }) => {
           const active = pathname === href;
@@ -93,7 +150,7 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150",
                 active ? "text-white" : "hover:opacity-90"
               )}
               style={
@@ -112,7 +169,7 @@ export function Sidebar() {
                 <Icon size={18} strokeWidth={active ? 2.5 : 1.8} />
                 {showBadge && (
                   <span
-                    className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center font-mono"
                     style={{
                       background: "var(--magenta)",
                       color: "#fff",
@@ -135,13 +192,37 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* Footer & Sync Status Indicator */}
       <div
-        className="p-4 border-t hidden lg:block"
+        className="p-4 border-t flex flex-col gap-2.5 hidden lg:flex"
         style={{ borderColor: "var(--border)" }}
       >
-        <p className="text-[10px] font-mono tracking-wider oil-gradient-text">
-          why not today?
-        </p>
+        <SyncIndicator status={syncStatus} />
+
+        {isCloudMode && user ? (
+          <div className="flex items-center justify-between pt-1">
+            <span
+              className="text-xs font-mono truncate max-w-[120px]"
+              style={{ color: "var(--text-subtle)" }}
+              title={user.email || ""}
+            >
+              {user.email?.split("@")[0]}
+            </span>
+            <button
+              type="button"
+              onClick={() => signOut()}
+              className="p-1 rounded text-xs transition-colors hover:text-[var(--red)]"
+              style={{ color: "var(--text-subtle)" }}
+              title="Sair da conta"
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+        ) : (
+          <p className="text-[10px] font-mono tracking-wider oil-gradient-text">
+            why not today?
+          </p>
+        )}
       </div>
     </aside>
   );

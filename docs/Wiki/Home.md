@@ -69,7 +69,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 🔒 Data Privacy & Supabase Sync
 
 * **V0.1 (Current)**: Data is stored locally in your browser using `localStorage` via the reactive `usePersonaState` hook.
-* **V0.2 (Planned)**: Private single-tenant Supabase backend integration (PostgreSQL + RLS + Auth) for secure multi-device sync across desktop and phone.
+* **V0.2 (In validation)**: Private single-tenant Supabase backend integration (PostgreSQL + RLS + Auth) for secure multi-device sync across desktop and phone.
 
 ---
 
