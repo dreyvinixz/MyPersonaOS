@@ -72,6 +72,7 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
   15. Confirmed two standard `authenticated` users and ran a rollback-safe A/B RLS suite: 9/9 checks passed and no test rows remained.
   16. Confirmed public signup is disabled and closed the private Supabase project-setup gate without recording any API key.
   17. Configured ignored local Cloud Mode, passed TypeScript/lint/build and unauthenticated route/Data API smoke tests, then passed a rollback-safe 6/6 RPC migration suite.
+  18. Fixed the pre-migration backup lookup for snapshots still stored under the V0.1 legacy key and documented a disposable browser fixture plus verification checker.
 
 ---
 
@@ -134,6 +135,8 @@ migration checks pass. Authenticated browser migration/sync validation remains.
   `307` private-route redirect, login-shell privacy, security headers, and anonymous Data API RLS.
 - RPC migration passed 6/6 for initial import, idempotency, relationships, Main Focus,
   platforms, cross-account isolation, and the second account's own import; rollback left zero rows.
+- The legacy-key backup fix preserves the exact pre-normalization payload and retains
+  the cross-user owner-claim guard; a focused in-memory browser-storage test passed.
 
 ### Required validation before merge
 
@@ -178,7 +181,9 @@ Then, against an actual configured Supabase test project:
 
 ### Next best action
 
-Run the real V0.1 legacy-ID browser snapshot migration by having the owner enter credentials directly in the login page, then verify database and cache evidence.
+Run the documented disposable V0.1 legacy-ID browser fixture, have the owner enter
+credentials directly in the login page, then run the browser checker and verify
+database evidence. Never send the password through chat.
 
 ### Remaining tasks
 
