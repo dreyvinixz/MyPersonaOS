@@ -31,7 +31,7 @@ exists on a branch.
 
 Branch: `agent/security-performance-audit`
 
-Current status: `CLOUD_AUTH_RLS_VALIDATED_BROWSER_FLOW_PENDING`
+Current status: `CLOUD_MODE_SMOKE_AND_RPC_VALIDATED_BROWSER_MIGRATION_PENDING`
 
 ### Engineering complete
 
@@ -58,17 +58,22 @@ Follow the detailed procedure in
 
 Homologation project `rchkmaohyiehktmhxkxp` was initialized on 2026-08-11.
 The database migration/schema inspection and SQL-level A/B RLS isolation test are
-complete; public signup is disabled and only end-to-end browser evidence remains pending.
+complete; public signup is disabled, Cloud Mode smoke/RPC checks pass, and authenticated browser evidence remains pending.
+
+Cloud Mode local smoke on 2026-08-11 passed with an ignored `.env.local`:
+TypeScript, lint, production build (9/9 pages), unauthenticated redirect/login-shell
+privacy, security headers, anonymous Data API RLS, and rollback-safe RPC migration.
+No key was committed or recorded in project documentation.
 
 | ID | Task | Status | Acceptance evidence |
 |---|---|---|---|
 | V02-01 | Create/configure a private Supabase test project | `DONE` | Project is healthy, public signup is disabled, and two confirmed `authenticated` users exist |
 | V02-02 | Apply all four V0.2 migrations | `DONE` | Four migrations recorded; 6 RLS tables, 6 owner policies, RPC grants/timeout, constraints, 13 query/FK indexes, and 6 Realtime tables inspected |
 | V02-03 | Prove A/B-user RLS isolation | `DONE` | 9/9 SQL-role tests passed: own rows visible, foreign rows hidden, cross-user insert/update/delete and cross-owner project assignment blocked; rollback left zero rows |
-| V02-04 | Test a real V0.1 browser snapshot migration | `PENDING` | UUID conversion preserves relationships, Main Focus, platforms, and migration version |
+| V02-04 | Test a real V0.1 browser snapshot migration | `IN PROGRESS` | RPC migration passed 6/6 for initial import, idempotency, relationships, Main Focus, platforms, and account isolation; real legacy-ID browser normalization/login remains |
 | V02-05 | Test offline outbox across reload/reconnect | `PENDING` | Create/update/delete survive reload and flush exactly once after reconnect |
 | V02-06 | Test desktop ↔ mobile Realtime | `PENDING` | Capture, status, Main Focus, and delete changes converge on both devices |
-| V02-07 | Verify login/logout and route privacy | `PENDING` | Private UI/data never renders for an unauthenticated Cloud Mode session |
+| V02-07 | Verify login/logout and route privacy | `IN PROGRESS` | Unauthenticated `/` redirects `307` to `/login`; login returns `200` without private shell and with security headers; authenticated login/logout remains |
 | V02-08 | Validate the production Vercel deployment | `PENDING` | Environment, redirects, static assets, and mobile session work in production |
 | V02-09 | Review and merge the feature branch | `BLOCKED` | All checks above pass and the owner approves the merge |
 | V02-10 | Tag and document `v0.2.0` | `BLOCKED` | Merge completed, changelog updated, release workflow green |
@@ -100,7 +105,7 @@ Audit branch: `agent/security-performance-audit`
 
 ### Next hardening slices
 
-- [ ] `SEC-10` Finish RPC browser behavior, Auth rate-limit, and different-account cache-isolation validation; migration chain and SQL-level A/B RLS isolation are proven.
+- [ ] `SEC-10` Finish authenticated browser migration, Auth rate-limit, and different-account cache-isolation validation; migration chain, SQL-level A/B RLS, anonymous Data API, and RPC behavior are proven.
 - [ ] `SEC-11` Add runtime schema validation for versioned LocalStorage snapshots/outbox entries.
 - [ ] `SEC-12` Evaluate encrypted-at-rest browser persistence for untrusted/shared devices.
 - [ ] `SEC-13` Replace CSP inline allowances with nonces/hashes if the production Next.js path supports it cleanly.
