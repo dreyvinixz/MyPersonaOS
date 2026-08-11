@@ -1,6 +1,6 @@
 # MyPersonaOS Roadmap
 
-> Last updated: 2026-08-09
+> Last updated: 2026-08-11
 >
 > Product north star: **What deserves attention today?**
 
@@ -29,9 +29,9 @@ exists on a branch.
 
 ## Active release gate — V0.2
 
-Branch: `agent/supabase-persistence`
+Branch: `agent/security-performance-audit`
 
-Current status: `LOCAL_RELEASE_CHECKS_PASSED_CLOUD_VALIDATION_PENDING`
+Current status: `CLOUD_SCHEMA_APPLIED_AUTH_AND_FLOW_VALIDATION_PENDING`
 
 ### Engineering complete
 
@@ -56,10 +56,14 @@ Current status: `LOCAL_RELEASE_CHECKS_PASSED_CLOUD_VALIDATION_PENDING`
 Follow the detailed procedure in
 [`docs/v0.2-supabase-validation.md`](docs/v0.2-supabase-validation.md).
 
+Homologation project `rchkmaohyiehktmhxkxp` was initialized on 2026-08-11.
+The database migration/schema inspection is complete; Auth configuration and
+end-to-end user-flow evidence remain pending.
+
 | ID | Task | Status | Acceptance evidence |
 |---|---|---|---|
-| V02-01 | Create/configure a private Supabase test project | `PENDING` | Public signup disabled; owner and temporary test user available |
-| V02-02 | Apply all three V0.2 migrations | `PENDING` | Schema, policies, triggers, RPC grants/timeouts, constraints, indexes, and Realtime publication inspected |
+| V02-01 | Create/configure a private Supabase test project | `IN PROGRESS` | Project is healthy and private data schema is ready; public signup must still be disabled and owner/test users created |
+| V02-02 | Apply all four V0.2 migrations | `DONE` | Four migrations recorded; 6 RLS tables, 6 owner policies, RPC grants/timeout, constraints, 13 query/FK indexes, and 6 Realtime tables inspected |
 | V02-03 | Prove A/B-user RLS isolation | `PENDING` | Cross-user select/insert/update/delete attempts are rejected |
 | V02-04 | Test a real V0.1 browser snapshot migration | `PENDING` | UUID conversion preserves relationships, Main Focus, platforms, and migration version |
 | V02-05 | Test offline outbox across reload/reconnect | `PENDING` | Create/update/delete survive reload and flush exactly once after reconnect |
@@ -96,7 +100,7 @@ Audit branch: `agent/security-performance-audit`
 
 ### Next hardening slices
 
-- [ ] `SEC-10` Validate the third migration, RLS, RPC grants, Auth rate limits, and cache isolation against two real test users.
+- [ ] `SEC-10` Validate the full migration chain, RLS, RPC behavior, Auth rate limits, and cache isolation against two real test users.
 - [ ] `SEC-11` Add runtime schema validation for versioned LocalStorage snapshots/outbox entries.
 - [ ] `SEC-12` Evaluate encrypted-at-rest browser persistence for untrusted/shared devices.
 - [ ] `SEC-13` Replace CSP inline allowances with nonces/hashes if the production Next.js path supports it cleanly.
