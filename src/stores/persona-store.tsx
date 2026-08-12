@@ -26,6 +26,7 @@ import {
   flushCloudOutbox,
   getPendingMutationCount,
 } from "@/lib/sync/outbox";
+import { reconcileProjects } from "@/lib/domain/project-reconciler";
 
 type PersonaStoreValue = {
   state: PersonaState;
@@ -268,7 +269,9 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
       if (statesDiffer(previous, rawPrevious)) commitState(previous);
 
-      const next = updater(previous);
+      let next = updater(previous);
+      next = reconcileProjects(previous, next);
+      
       commitState(next);
 
       if (!isCloudMode || !user) return;
