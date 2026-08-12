@@ -112,6 +112,18 @@ Implemented:
 - composite owner/newest-first indexes matching all full-state list queries;
 - covering index for the `tasks.project_id` foreign key.
 
+## V0.3 Tasks/Projects architecture
+
+- Tasks are the sole source of truth for project membership and progress.
+- `Project.tasks` and `Project.progress` are derived after Local or Cloud
+  adoption; derived-only changes do not create project mutations.
+- LocalStorage omits the duplicated `Project.tasks` cache while preserving the
+  global Tasks collection.
+- Calendar-only due dates/deadlines stay as `YYYY-MM-DD` in UI state to avoid
+  timezone day shifts while the V0.2 database columns remain `TIMESTAMPTZ`.
+- Node's built-in test runner covers reconciliation, persistence comparison,
+  local compaction, dangling relationships, and date-only parsing.
+
 ## Security/performance audit state
 
 The 2026-08-09 source/history audit found no high-confidence committed secret,
@@ -222,19 +234,21 @@ The product is personal/single-owner for now.
 
 ## Current milestone
 
-### V0.2 — Supabase Persistence, RLS & Private Multi-Device Sync
+### V0.3 — Core Workflows
 
-**Engineering status:** `RELEASED`
+**Engineering status:** `TASKS_PROJECTS_CRUD_IN_VALIDATION`
 
-V0.2 passed automated checks, SQL-level A/B RLS, RPC migration, authenticated browser validation, and production Vercel validation. It is deployed from `main`; production login, private-route redirects, the Service Worker, and current-deployment runtime logs were verified.
-
-Production adjustments:
-- Added `public/sw.js` (minimal PWA Service Worker) and client registration to resolve `404` warnings.
-- Filtered normal `Auth session missing!` unauthenticated states in `proxy.ts` and `AuthProvider.tsx` to prevent error-level log noise on Vercel.
+The Tasks/Projects CRUD vertical slice is implemented and its focused domain
+tests, TypeScript, and lint checks pass. Real Local/Cloud/Realtime/offline browser
+validation remains the release gate before starting the Today planning loop.
 
 ## Current Git workflow
 
-Released from:
+Active feature branch:
+
+`agent/v0.3-tasks-projects-crud`
+
+Base:
 
 `main`
 
@@ -242,9 +256,7 @@ Production:
 
 `https://my-persona-os.vercel.app`
 
-Release tag:
-
-`v0.2.0`
+V0.2 remains released as `v0.2.0`.
 
 
 ## Architectural guardrails

@@ -1,5 +1,6 @@
 import type { PersonaState } from "@/types";
 import { createEmptyPersonaState } from "@/lib/persona-state";
+import { compactProjectTaskCache } from "@/lib/domain/project-reconciler";
 
 const LEGACY_STORAGE_KEY = "mypersonaos_state_v1";
 const LOCAL_STORAGE_KEY = "mypersonaos_state_v2_local";
@@ -75,7 +76,10 @@ export class LocalRepository {
         return initial;
       }
       const state = normalizeState(JSON.parse(raw) as Partial<PersonaState>);
-      window.localStorage.setItem(key, JSON.stringify(state));
+      window.localStorage.setItem(
+        key,
+        JSON.stringify(compactProjectTaskCache(state))
+      );
       return state;
     } catch (error) {
       console.error("Failed to read local PersonaState:", error);
@@ -85,7 +89,10 @@ export class LocalRepository {
 
   saveState(state: PersonaState, userId?: string): void {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(storageKey(userId), JSON.stringify(state));
+    window.localStorage.setItem(
+      storageKey(userId),
+      JSON.stringify(compactProjectTaskCache(state))
+    );
   }
 
   createBackup(label = "manual", userId?: string): string | null {

@@ -2,15 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePersonaState } from "@/lib/storage";
-import { Folder, Edit3, Trash2, Plus } from "lucide-react";
+import { Folder, Plus } from "lucide-react";
+import { ProjectCard } from "@/components/projects/ProjectCard";
 import { ProjectDialog } from "@/components/projects/ProjectDialog";
+import { createEntityId } from "@/lib/ids";
+import { usePersonaState } from "@/lib/storage";
 import type { Project } from "@/types";
+
+type ProjectFormData = {
+  name: string;
+  description?: string;
+  deadline?: string;
+};
 
 export default function ProjectsPage() {
   const { state, updateState, mounted } = usePersonaState();
   const router = useRouter();
-  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
 
@@ -21,38 +28,46 @@ export default function ProjectsPage() {
     setDialogOpen(true);
   };
 
-  const handleOpenEdit = (project: Project, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleOpenEdit = (project: Project) => {
     setEditingProject(project);
     setDialogOpen(true);
   };
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm("Tem certeza que deseja excluir este projeto? As tarefas associadas ficarão sem projeto.")) return;
+  const handleCloseDialog = () => setDialogOpen(false);
+  const handleOpenProject = (id: string) => router.push(`/tasks?project=${id}`);
+
+  const handleDelete = (id: string) => {
+    if (
+      !confirm(
+        "Tem certeza que deseja excluir este projeto? As tarefas associadas ficarão sem projeto."
+      )
+    ) {
+      return;
+    }
+
     updateState((previous) => ({
       ...previous,
-      projects: previous.projects.filter((p) => p.id !== id),
+      projects: previous.projects.filter((project) => project.id !== id),
     }));
   };
 
-  const handleSave = (data: { name: string; description?: string; deadline?: string }) => {
+  const handleSave = (data: ProjectFormData) => {
     const now = new Date().toISOString();
-    
+
     updateState((previous) => {
       if (editingProject) {
         return {
           ...previous,
-          projects: previous.projects.map((p) =>
-            p.id === editingProject.id
-              ? { ...p, ...data, updatedAt: now }
-              : p
+          projects: previous.projects.map((project) =>
+            project.id === editingProject.id
+              ? { ...project, ...data, updatedAt: now }
+              : project
           ),
         };
       }
-      
+
       const newProject: Project = {
-        id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `proj-${Date.now()}`,
+        id: createEntityId(),
         name: data.name,
         description: data.description,
         deadline: data.deadline,
@@ -61,35 +76,40 @@ export default function ProjectsPage() {
         createdAt: now,
         updatedAt: now,
       };
-      
+
       return {
         ...previous,
         projects: [newProject, ...previous.projects],
       };
     });
-    
-    setDialogOpen(false);
-  };
 
-  const handleCardClick = (projectId: string) => {
-    router.push(`/tasks?project=${projectId}`);
+    handleCloseDialog();
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.25em] font-semibold mb-2" style={{ color: "var(--text-subtle)" }}>
+          <p
+            className="text-[10px] uppercase tracking-[0.25em] font-semibold mb-2"
+            style={{ color: "var(--text-subtle)" }}
+          >
             Visão Geral
           </p>
           <div className="flex items-center gap-3">
             <Folder size={28} style={{ color: "var(--accent)" }} />
-            <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--text)" }}>Projetos</h1>
+            <h1
+              className="text-3xl font-bold tracking-tight"
+              style={{ color: "var(--text)" }}
+            >
+              Projetos
+            </h1>
           </div>
         </div>
         <button
+          type="button"
           onClick={handleOpenCreate}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[var(--accent)] hover:opacity-90 transition-opacity"
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[var(--accent)] hover:opacity-90 transition-opacity"
         >
           <Plus size={16} />
           Novo Projeto
@@ -97,67 +117,35 @@ export default function ProjectsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {state.projects.map((proj) => {
-          const doneTasks = proj.tasks.filter((t) => t.status === "done").length;
-          const totalTasks = proj.tasks.length;
-          
-          return (
-            <div 
-              key={proj.id} 
-              onClick={() => handleCardClick(proj.id)}
-              className="group rounded-xl border p-5 flex flex-col justify-between shadow-sm hover:border-[var(--accent)] cursor-pointer transition-colors relative" 
-              style={{ background: "var(--card)", borderColor: "var(--border)" }}
-            >
-              <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={(e) => handleOpenEdit(proj, e)}
-                  className="p-1.5 rounded-md bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
-                  aria-label="Editar"
-                >
-                  <Edit3 size={14} />
-                </button>
-                <button
-                  onClick={(e) => handleDelete(proj.id, e)}
-                  className="p-1.5 rounded-md bg-[var(--surface)] text-[var(--text-muted)] hover:text-red-400 transition-colors"
-                  aria-label="Excluir"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
+        {state.projects.map((project) => (
+          <ProjectCard
+            key={project.id}
+            project={project}
+            onDelete={handleDelete}
+            onEdit={handleOpenEdit}
+            onOpen={handleOpenProject}
+          />
+        ))}
 
-              <div>
-                <h3 className="font-semibold text-base mb-1 pr-16" style={{ color: "var(--text)" }}>{proj.name}</h3>
-                <p className="text-xs mb-4 line-clamp-2" style={{ color: "var(--text-muted)" }}>
-                  {proj.description || "Nenhuma descrição"}
-                </p>
-              </div>
-              
-              <div>
-                <div className="flex justify-between text-xs mb-2" style={{ color: "var(--text-subtle)" }}>
-                  <span>Progresso ({doneTasks}/{totalTasks} tarefas)</span>
-                  <span className="font-mono">{proj.progress}%</span>
-                </div>
-                <div className="w-full bg-[var(--surface)] h-1.5 rounded-full overflow-hidden">
-                  <div className="h-full transition-all duration-300 rounded-full" style={{ width: `${proj.progress}%`, background: "var(--accent)" }} />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-        {state.projects.length === 0 && (
-          <div className="col-span-full p-12 text-center border rounded-xl border-dashed" style={{ borderColor: "var(--border)" }}>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Nenhum projeto cadastrado.</p>
+        {state.projects.length === 0 ? (
+          <div
+            className="col-span-full p-12 text-center border rounded-xl border-dashed"
+            style={{ borderColor: "var(--border)" }}
+          >
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+              Nenhum projeto cadastrado.
+            </p>
           </div>
-        )}
+        ) : null}
       </div>
 
-      {dialogOpen && (
-        <ProjectDialog 
-          project={editingProject} 
-          onClose={() => setDialogOpen(false)} 
-          onSave={handleSave} 
+      {dialogOpen ? (
+        <ProjectDialog
+          project={editingProject}
+          onClose={handleCloseDialog}
+          onSave={handleSave}
         />
-      )}
+      ) : null}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 # MyPersonaOS Roadmap
 
-> Last updated: 2026-08-11
+> Last updated: 2026-08-12
 >
 > Product north star: **What deserves attention today?**
 
@@ -23,7 +23,7 @@ exists on a branch.
 |---|---|---|
 | V0.1 — Personal Foundation | `DONE` | Today, Quick Capture, Inbox, initial domain pages, local persistence, and Oil Slick UI |
 | V0.2 — Private Persistence | `DONE` | Supabase Auth/PostgreSQL/RLS, offline outbox, migration, and multi-device Realtime |
-| V0.3 — Core Workflows | `PLANNED` | Complete Tasks/Projects, content production, and English-learning vertical slices |
+| V0.3 — Core Workflows | `IN VALIDATION` | Tasks/Projects CRUD implemented; real-environment validation remains before the Today slice |
 | V0.4 — Daily-Use PWA | `PLANNED` | Installable mobile experience, stronger offline shell, deployment, and operational polish |
 | V0.5 — Personal Orchestrator | `LATER` | Calendar, weekly review, analytics, automation, and optional AI assistance |
 
@@ -115,9 +115,11 @@ Audit branch: `agent/security-performance-audit`
 Work in small vertical slices, in this order:
 
 1. **Tasks & Projects CRUD**
-   - [ ] Create, edit, complete, reschedule, and delete tasks.
-   - [ ] Create/edit projects and assign tasks without breaking owner boundaries.
-   - [ ] Make project progress derive from real task completion where appropriate.
+   - [x] Create, edit, complete, reschedule, and delete tasks.
+   - [x] Create/edit projects and assign tasks without breaking owner boundaries.
+   - [x] Derive project task membership and progress from Tasks as the source of truth.
+   - [x] Add focused domain/date tests without adding a test dependency.
+   - [ ] Validate Local, authenticated Cloud, Realtime, and offline CRUD in real browsers.
 2. **Today planning loop**
    - [ ] Pull tasks into Today, select Main Focus, and close the day deliberately.
    - [ ] Preserve a useful Today experience offline and across devices.
@@ -127,6 +129,14 @@ Work in small vertical slices, in this order:
 4. **English learning sessions**
    - [ ] Implement the Listen + Read → Retell → Review session loop.
    - [ ] Track vocabulary review, pronunciation work, and measurable progress.
+
+### Next technical queue
+
+| Priority | ID | Task | Acceptance evidence |
+|---|---|---|---|
+| `P0` | `V03-TP-01` | Run the Tasks/Projects browser matrix in Local and Cloud modes, including offline reload/reconnect, project deletion, mobile controls, and PC ↔ mobile Realtime | CRUD and derived progress remain consistent after every scenario; no outbox item or browser error remains |
+| `P1` | `V03-DATA-01` | Add a reviewed migration from `TIMESTAMPTZ` to `DATE` for task due dates/project deadlines and decide whether to retire the compatibility-only `projects.progress` column | Migration passes on representative existing timestamps and a fresh database; rollback/recovery steps are documented |
+| `P1` | `V03-TODAY-01` | Begin the Today planning loop with deliberate scheduling, Main Focus selection, and close-day behavior | The owner can choose, execute, and close Today offline and across devices without duplicate task state |
 
 ## V0.4 — Daily-use PWA
 

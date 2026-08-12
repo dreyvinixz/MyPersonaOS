@@ -76,7 +76,45 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
 
 ---
 
-## Current Handoff — `main` / `v0.2.0`
+## Current Handoff — `agent/v0.3-tasks-projects-crud`
+
+### Mission
+
+Complete and validate the first V0.3 vertical slice: Tasks & Projects CRUD.
+
+### Status
+
+`IMPLEMENTED / AUTOMATED_CHECKS_PASS / BROWSER_MATRIX_PENDING`
+
+### Completed in this review
+
+1. Audited all six original feature files and the related Local/Supabase/outbox paths.
+2. Made Tasks the sole source of truth for project task membership and progress.
+3. Prevented derived task/progress changes from creating Cloud project upserts.
+4. Removed duplicated project task arrays from persisted LocalStorage snapshots.
+5. Preserved calendar dates without Brazil/UTC day shifts.
+6. Completed priority/project/deadline presentation and mobile/keyboard controls.
+7. Replaced incomplete `Task` casts and timestamp IDs with explicit dialog props and `createEntityId()`.
+8. Added six focused tests using Node 24's built-in runner and wired them into CI.
+
+### Validation
+
+- `npm test` — passed, 6/6.
+- `npm run lint` — passed.
+- `npx tsc --noEmit` — passed.
+- `npm run security:scan` — passed for 99 tracked files.
+- `npm audit --audit-level=moderate` — passed, 0 vulnerabilities.
+- `npm run build` — passed, 9/9 static pages generated.
+- Visual browser automation — blocked because `agent-browser` is unavailable in the environment.
+
+### Next best action
+
+Run `V03-TP-01` from `ROADMAP.md`: the real Local/Cloud/Realtime/offline browser
+matrix. Do not mark the vertical slice complete from automated checks alone.
+
+---
+
+## Historical Handoff — `main` / `v0.2.0`
 
 ### Mission
 
@@ -184,4 +222,3 @@ Begin V0.3 Core Workflows from the canonical queue in `ROADMAP.md`, starting wit
 5. [x] Review and merge Pull Request #5 to `main`.
 6. [x] Validate the production Vercel deployment and prepare tag `v0.2.0`.
 7. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md` (beginning with runtime snapshot validation and splitting `PersonaProvider`).
-

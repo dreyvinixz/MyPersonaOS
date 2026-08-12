@@ -7,6 +7,7 @@ import type {
   Task,
 } from "@/types";
 import { supabaseRepository } from "@/lib/repositories/supabase-repository";
+import { projectPersistenceChanged } from "@/lib/domain/project-reconciler";
 
 const OUTBOX_KEY = "mypersonaos_cloud_outbox_v1";
 
@@ -92,11 +93,16 @@ function changed<T>(before: T, after: T): boolean {
   return JSON.stringify(before) !== JSON.stringify(after);
 }
 
+function compactProjectMutation(project: Project): Project {
+  return project.tasks.length === 0 ? project : { ...project, tasks: [] };
+}
+
 function diffCollection<T extends { id: string }>(
   previous: T[],
   next: T[],
   onUpsert: (entity: T) => CloudMutation,
-  onDelete: (id: string) => CloudMutation
+  onDelete: (id: string) => CloudMutation,
+  hasChanged: (before: T, after: T) => boolean = changed
 ): CloudMutation[] {
   if (previous === next) return [];
 
@@ -107,7 +113,7 @@ function diffCollection<T extends { id: string }>(
 
   next.forEach((entity) => {
     const before = previousById.get(entity.id);
-    if (!before || changed(before, entity)) upserts.push(onUpsert(entity));
+    if (!before || hasChanged(before, entity)) upserts.push(onUpsert(entity));
   });
 
   previous.forEach((entity) => {
@@ -133,8 +139,13 @@ export function buildCloudMutations(
     ...diffCollection(
       previous.projects,
       next.projects,
-      (entity) => withMeta(userId, { kind: "upsertProject", entity }),
-      (entityId) => withMeta(userId, { kind: "deleteProject", entityId })
+      (entity) =>
+        withMeta(userId, {
+          kind: "upsertProject",
+          entity: compactProjectMutation(entity),
+        }),
+      (entityId) => withMeta(userId, { kind: "deleteProject", entityId }),
+      projectPersistenceChanged
     ),
     ...diffCollection(
       previous.tasks,

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Folder, X } from "lucide-react";
 import type { Project } from "@/types";
 import { PERSONA_INPUT_LIMITS } from "@/lib/persona-state";
+import { toDateOnly } from "@/lib/domain/date-only";
 
 type ProjectDialogProps = {
   project?: Project | null;
@@ -12,24 +13,29 @@ type ProjectDialogProps = {
 export function ProjectDialog({ project, onClose, onSave }: ProjectDialogProps) {
   const [name, setName] = useState(project?.name || "");
   const [description, setDescription] = useState(project?.description || "");
-  const [deadline, setDeadline] = useState(
-    project?.deadline ? new Date(project.deadline).toISOString().split("T")[0] : ""
-  );
+  const [deadline, setDeadline] = useState(toDateOnly(project?.deadline));
 
-  // Prevent background scrolling when dialog is open
   useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
     };
-  }, []);
 
-  const handleSave = () => {
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!name.trim()) return;
     onSave({
       name: name.trim(),
       description: description.trim() || undefined,
-      deadline: deadline ? new Date(deadline).toISOString() : undefined,
+      deadline: deadline || undefined,
     });
   };
 
@@ -43,9 +49,10 @@ export function ProjectDialog({ project, onClose, onSave }: ProjectDialogProps) 
         className="fixed inset-0 z-[999] flex items-start justify-center px-3 pt-[16vh] sm:pt-[20vh]"
         onClick={onClose}
       >
-        <div
+        <form
           className="w-full max-w-[440px] rounded-2xl border shadow-2xl overflow-hidden animate-modal-in bg-[var(--card)] border-[var(--border)] [box-shadow:0_25px_60px_rgba(0,0,0,0.50),0_0_0_1px_var(--border)]"
           onClick={(event) => event.stopPropagation()}
+          onSubmit={handleSubmit}
           role="dialog"
           aria-modal="true"
           aria-labelledby="project-dialog-title"
@@ -88,10 +95,6 @@ export function ProjectDialog({ project, onClose, onSave }: ProjectDialogProps) 
                 value={name}
                 maxLength={PERSONA_INPUT_LIMITS.projectName}
                 onChange={(event) => setName(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") handleSave();
-                  if (event.key === "Escape") onClose();
-                }}
                 className="w-full bg-transparent text-sm outline-none border-b pb-2 text-[var(--text)] border-[var(--border)] focus:border-[var(--accent)] transition-colors"
                 placeholder="Ex: Refatorar módulo de autenticação"
               />
@@ -107,6 +110,7 @@ export function ProjectDialog({ project, onClose, onSave }: ProjectDialogProps) 
               <textarea
                 id="project-desc"
                 value={description}
+                maxLength={PERSONA_INPUT_LIMITS.projectDescription}
                 onChange={(event) => setDescription(event.target.value)}
                 className="w-full bg-transparent text-sm outline-none border-b pb-2 text-[var(--text)] border-[var(--border)] focus:border-[var(--accent)] transition-colors resize-none h-16"
                 placeholder="Objetivo principal deste projeto..."
@@ -139,15 +143,14 @@ export function ProjectDialog({ project, onClose, onSave }: ProjectDialogProps) 
               Cancelar
             </button>
             <button
-              type="button"
-              onClick={handleSave}
+              type="submit"
               disabled={!name.trim()}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 text-white bg-[var(--accent)]"
             >
               Salvar Projeto
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </>
   );

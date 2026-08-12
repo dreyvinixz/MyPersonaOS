@@ -41,6 +41,9 @@ jobs:
       - name: Scan tracked files for secrets
         run: npm run security:scan
 
+      - name: Run domain tests
+        run: npm test
+
       - name: Run ESLint
         run: npm run lint
 
