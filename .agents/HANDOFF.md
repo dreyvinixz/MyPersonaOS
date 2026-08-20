@@ -84,7 +84,7 @@ Complete and validate the first V0.3 vertical slice: Tasks & Projects CRUD.
 
 ### Status
 
-`IMPLEMENTED / AUTOMATED_CHECKS_PASS / BROWSER_MATRIX_PENDING`
+`IMPLEMENTED / LOCAL_BROWSER_PASS / CLOUD_MATRIX_BLOCKED`
 
 ### Completed in this review
 
@@ -105,12 +105,39 @@ Complete and validate the first V0.3 vertical slice: Tasks & Projects CRUD.
 - `npm run security:scan` — passed for 99 tracked files.
 - `npm audit --audit-level=moderate` — passed, 0 vulnerabilities.
 - `npm run build` — passed, 9/9 static pages generated.
-- Visual browser automation — blocked because `agent-browser` is unavailable in the environment.
+- Local desktop/mobile browser matrix — passed on 2026-08-19 through Chromium
+  CDP after the sandbox blocked `agent-browser` Unix sockets.
+- Local CRUD evidence — Project create/edit/delete; Task create/edit/reschedule/
+  complete/delete; link removal on Project delete; 1/2 derived progress = 50%;
+  reload persistence; `YYYY-MM-DD` preservation; 390×844 controls with no
+  horizontal overflow; no runtime exception/overlay/network failure.
+- Cloud auth boundary — passed: unauthenticated `/` redirected to `/login`
+  without private shell content.
+- Supabase health — passed: project healthy, four migrations, six RLS tables,
+  and zero personal rows before/after partial validation.
+- Authenticated Cloud CRUD, Offline/Outbox, and two-session Realtime — blocked:
+  the clean environment had no authenticated homologation browser session.
+- Fresh dependency audit — failed on 2026-08-19: 9 high findings in the
+  transitive `nanoid`/`postcss` chain; npm reported no fix available.
+- Registry verification — passed: 407 signatures and 92 attestations.
+
+Detailed steps and evidence are in
+`docs/v0.3-tasks-projects-validation.md`.
 
 ### Next best action
 
-Run `V03-TP-01` from `ROADMAP.md`: the real Local/Cloud/Realtime/offline browser
-matrix. Do not mark the vertical slice complete from automated checks alone.
+Establish a disposable authenticated homologation browser session and resume
+`V03-TP-01` at authenticated Cloud CRUD, then Offline/Outbox and two-session
+Realtime. Do not mark the slice complete or begin hardening/Today/Data work from
+the Local pass alone.
+
+### Product direction registered — 2026-08-19
+
+`Abyssal Command & Oceanic Gamification` is approved as a planned post-V0.3
+epic. Its product concept, reward table, sequencing, transaction/sync guardrails,
+and release gates are recorded in `docs/abyssal-command-epic.md` and linked from
+`ROADMAP.md`. No gamification code, schema, asset, dependency, commit, or push was
+created as part of this decision. The active next action remains `V03-TP-01`.
 
 ---
 

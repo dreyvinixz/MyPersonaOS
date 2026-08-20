@@ -1,6 +1,6 @@
 # MyPersonaOS Roadmap
 
-> Last updated: 2026-08-12
+> Last updated: 2026-08-19
 >
 > Product north star: **What deserves attention today?**
 
@@ -26,6 +26,7 @@ exists on a branch.
 | V0.3 — Core Workflows | `IN VALIDATION` | Tasks/Projects CRUD implemented; real-environment validation remains before the Today slice |
 | V0.4 — Daily-Use PWA | `PLANNED` | Installable mobile experience, stronger offline shell, deployment, and operational polish |
 | V0.5 — Personal Orchestrator | `LATER` | Calendar, weekly review, analytics, automation, and optional AI assistance |
+| Post-V0.3 Epic — Abyssal Command | `PLANNED` | Oceanic gamification through missions, focus dives, XP/AC, depth, ranks, companions, and cosmetic upgrades |
 
 ## Released — V0.2
 
@@ -120,6 +121,12 @@ Work in small vertical slices, in this order:
    - [x] Derive project task membership and progress from Tasks as the source of truth.
    - [x] Add focused domain/date tests without adding a test dependency.
    - [ ] Validate Local, authenticated Cloud, Realtime, and offline CRUD in real browsers.
+
+   Partial gate evidence: the Local Mode desktop/mobile browser matrix passed on
+   2026-08-19, including reload persistence, Project deletion without dangling
+   Task relationships, and derived progress. Authenticated Cloud, Offline/Outbox,
+   and Realtime remain blocked on an authenticated homologation browser session.
+   See [`docs/v0.3-tasks-projects-validation.md`](docs/v0.3-tasks-projects-validation.md).
 2. **Today planning loop**
    - [ ] Pull tasks into Today, select Main Focus, and close the day deliberately.
    - [ ] Preserve a useful Today experience offline and across devices.
@@ -154,12 +161,30 @@ Work in small vertical slices, in this order:
 - [ ] Automations with explicit user control and recoverable operations.
 - [ ] Optional AI prioritization that never blocks basic app use.
 
+## Post-V0.3 epic — Abyssal Command & Oceanic Gamification
+
+Direction approved on 2026-08-19; implementation has not started. This epic
+must not displace `V03-TP-01` or any remaining V0.3 exit criterion.
+
+- [ ] Phase 0: specify reward semantics, idempotent transactions, persistence,
+  outbox/Realtime convergence, `SEC-11` validation, and performance budgets.
+- [ ] Phase 1: implement the pure XP/AC/depth/rank engine, catalog, and tests.
+- [ ] Phase 2: add the Diver HUD, depth presentation, abyssal background, and
+  mission presentation without weakening core task usability.
+- [ ] Phase 3: add the Deep Vault, companion habitat, and HUD skins.
+- [ ] Phase 4: add recoverable focus dives, the O₂ timer, and opt-in audio.
+
+The full product concept, provisional reward table, architectural constraints,
+and acceptance gates live in
+[`docs/abyssal-command-epic.md`](docs/abyssal-command-epic.md).
+
 ## Explicitly out of scope for now
 
 - Public signup or a multi-user SaaS product.
 - A separate native mobile app before the PWA is proven insufficient.
 - Collaborative field-level conflict resolution.
 - AI orchestration before persistence and core workflows are reliable.
+- Abyssal Command implementation before the V0.3 release gates are complete.
 
 ## Engineering loop
 

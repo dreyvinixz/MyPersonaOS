@@ -24,6 +24,24 @@ English loop direction:
 
 `Listen + Read → Read Aloud → Pronunciation → Comprehension → Vocabulary → Retell → Review`
 
+## Approved post-V0.3 product direction
+
+**Abyssal Command & Oceanic Gamification** is approved as a planned post-V0.3
+epic. It reframes Tasks as underwater expedition missions and adds focus dives,
+XP, Aqua Credits, depth zones, diver ranks, bioluminescent companions, and
+cosmetic HUD/submarine unlocks.
+
+This direction is not implemented and does not change the active release gate.
+`V03-TP-01` and all remaining V0.3 exit criteria come first. Before persistent
+gamification ships, the design requires an idempotent reward/purchase model,
+Local/Cloud/outbox/Realtime convergence, `SEC-11` runtime validation, and
+accessibility/performance budgets. Level/rank/unlock eligibility should be
+derived from canonical XP, depth, balance, ownership, equipment, and reward
+events rather than stored as independently mutable copies.
+
+Canonical epic specification:
+`docs/abyssal-command-epic.md`.
+
 ## Technical foundation
 
 - Next.js 16.3 + App Router + Turbopack production build
@@ -239,8 +257,17 @@ The product is personal/single-owner for now.
 **Engineering status:** `TASKS_PROJECTS_CRUD_IN_VALIDATION`
 
 The Tasks/Projects CRUD vertical slice is implemented and its focused domain
-tests, TypeScript, and lint checks pass. Real Local/Cloud/Realtime/offline browser
-validation remains the release gate before starting the Today planning loop.
+tests, TypeScript, lint, secret scan, and build checks pass. The real Local Mode
+desktop/mobile browser matrix passed on 2026-08-19, including reload persistence,
+Project deletion without dangling Task relationships, date preservation, and
+derived progress. Authenticated Cloud/Offline/Outbox/Realtime validation remains
+the release gate before starting the Today planning loop because the clean
+validation environment had no authenticated homologation browser session.
+
+The fresh 2026-08-19 dependency audit reports nine high-severity findings in the
+transitive `nanoid`/`postcss` chain with no npm-provided fix. Registry signatures
+and attestations still verify. This must be triaged before the slice is closed;
+do not repeat the older zero-vulnerability claim for the current lockfile.
 
 ## Current Git workflow
 
