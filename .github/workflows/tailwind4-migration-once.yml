@@ -29,7 +29,6 @@ jobs:
       - name: Refresh lockfile for pinned Tailwind 4 packages
         run: |
           npm install --package-lock-only --ignore-scripts
-          node --input-type=module -e 'import {readFileSync} from "node:fs"; const p=JSON.parse(readFileSync("package-lock.json")); const missing=Object.entries(p.packages).filter(([k,v]) => k && (!v.integrity || !v.resolved)); console.log(JSON.stringify(missing.map(([k,v])=>({path:k, data:v})),null,2));'
           npm run security:lock
           npm ci --ignore-scripts
 
