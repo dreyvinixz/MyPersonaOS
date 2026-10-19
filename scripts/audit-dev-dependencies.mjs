@@ -7,9 +7,11 @@
 import { spawnSync } from "node:child_process";
 
 const exceptionExpiry = "2026-11-19";
+// Tailwind 4 eliminated the prior selector-parser finding. The remaining
+// exception is transitively introduced by eslint-config-next's build-time
+// @next/eslint-plugin-next/fast-glob toolchain, never runtime code.
 const exceptions = new Map([
   ["braces", new Set(["GHSA-vfj7-8cjw-p6xm"])],
-  ["postcss-selector-parser", new Set(["GHSA-rj75-hqrm-r3gf"])],
 ]);
 
 if (new Date().toISOString().slice(0, 10) >= exceptionExpiry) {
@@ -66,7 +68,7 @@ if (unapproved.length) {
 }
 
 console.log(
-  "Only reviewed, temporary Tailwind 3 development-toolchain advisories remain:",
+  "Only reviewed, temporary ESLint development-toolchain advisories remain:",
   Object.keys(vulnerabilities).join(", "),
 );
 console.log("Exception expires:", exceptionExpiry);
