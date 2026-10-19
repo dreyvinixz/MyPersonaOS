@@ -17,8 +17,25 @@ for (const group of ["dependencies", "devDependencies", "optionalDependencies"])
 let count = 0;
 for (const [location, dependency] of Object.entries(lock.packages)) {
   if (!location) continue;
-  if (dependency.link || !dependency.resolved || !dependency.integrity) {
-    throw new Error("Unpinned or locally linked dependency: " + location);
+  if (dependency.link) {
+    throw new Error("Linked dependency is prohibited: " + location);
+  }
+  // The Tailwind oxide WASM optional package contains bundled modules inside
+  // its own integrity-verified tarball. npm records these with inBundle=true
+  // rather than giving each embedded file an independent registry URL.
+  if (!dependency.resolved || !dependency.integrity) {
+    const bundledParent = lock.packages["node_modules/@tailwindcss/oxide-wasm32-wasi"];
+    if (
+      dependency.inBundle === true &&
+      dependency.optional === true &&
+      dependency.dev === true &&
+      location.startsWith("node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/") &&
+      bundledParent?.resolved?.startsWith("https://registry.npmjs.org/") &&
+      bundledParent?.integrity?.startsWith("sha512-")
+    ) {
+      continue;
+    }
+    throw new Error("Dependency has no verified tarball or bundled parent: " + location);
   }
   const url = new URL(dependency.resolved);
   if (url.protocol !== "https:" || url.hostname !== "registry.npmjs.org" || url.port || url.username || url.password) {
