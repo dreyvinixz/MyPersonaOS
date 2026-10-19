@@ -18,7 +18,7 @@ that the package maintainer or published code is trustworthy.
    `inBundle` are permitted **only** for the optional Tailwind WASM package,
    where the integrity-verified parent tarball covers their bytes.
 5. `npm audit --omit=dev --audit-level=moderate` blocks runtime advisories.
-   Full-tree audit with narrowly reviewed dev-only exception rules is retained
+   Full-tree audit keeps the single, narrowly reviewed `braces` dev-only exception (ESLint build tools)
    only while necessary, expiring no later than 2026-11-19.
 6. `npm audit signatures` validates registry signatures for packages that
    provide them. Inspect the exact packages with attestations; not all packages
