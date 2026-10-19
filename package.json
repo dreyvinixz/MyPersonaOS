@@ -12,7 +12,8 @@
     "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/*.test.mjs",
     "lint": "eslint .",
     "security:scan": "node scripts/scan-secrets.mjs",
-    "ci:watch": "python scripts/ci_watch.py"
+    "ci:watch": "python scripts/ci_watch.py",
+    "security:lock": "node scripts/check-npm-lockfile.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
@@ -28,11 +29,10 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "tailwindcss": "4.3.3",
+    "typescript": "^5",
+    "@tailwindcss/postcss": "4.3.3"
   }
 }

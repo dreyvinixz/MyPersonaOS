@@ -39,3 +39,15 @@ A one-time secure dependency refresh was executed on a GitHub-hosted Node 24 run
 - Removed its own temporary repair workflow after successfully pushing the checked changes.
 
 **Residual full-tree audit:** 9 findings (7 high, 2 moderate), all transitively attributable to the two documented **development-only** root advisories. They do not disappear from `npm audit`; the check allows them only with the runtime audit passing and the exception valid. Reevaluate no later than **2026-11-19**. The standard PR/push CI must still independently pass after this commit; the one-time repair workflow is not a substitute for ordinary CI or Cloud/Offline/Realtime validation.
+
+## Tailwind CSS 4 migration — 2026-10-19 (verification pending)
+
+The feature branch is migrating from Tailwind 3 to Tailwind 4 (postcss plugin,
+CSS-first entrypoint and no obsolete JavaScript config). The new dependency tree
+must pass a fresh audit. If the two older exceptions no longer appear, remove
+the exception script from CI rather than indefinitely retaining a waiver.
+
+Supply-chain protections are additive: blocked install scripts, lockfile source
+verification, npm registry signatures, Dependabot review PRs, GitHub Dependency
+Review, CodeQL, and no automatic merging. A green audit does not imply a
+mathematical guarantee against malicious npm packages.
