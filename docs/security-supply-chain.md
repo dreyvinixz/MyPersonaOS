@@ -14,7 +14,9 @@ that the package maintainer or published code is trustworthy.
 3. `npm ci --ignore-scripts` in CI/release; project `.npmrc` also disables
    lifecycle install scripts by default in developer and deployment installs.
 4. `npm run security:lock` enforces npm lockfile version 3, exactly matching
-   manifest declarations, official HTTPS registry URLs, and SHA-512 digests.
+   manifest declarations, official HTTPS registry URLs, and SHA-512 digests. Embedded modules marked
+   `inBundle` are permitted **only** for the optional Tailwind WASM package,
+   where the integrity-verified parent tarball covers their bytes.
 5. `npm audit --omit=dev --audit-level=moderate` blocks runtime advisories.
    Full-tree audit with narrowly reviewed dev-only exception rules is retained
    only while necessary, expiring no later than 2026-11-19.
