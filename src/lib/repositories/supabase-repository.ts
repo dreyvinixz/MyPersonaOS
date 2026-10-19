@@ -7,6 +7,7 @@ import type {
   ContentPiece,
   EnglishWord,
 } from "@/types";
+import { calculateProjectProgress } from "@/lib/domain/project-reconciler";
 
 type SupabaseErrorLike = { message?: string; code?: string } | null;
 
@@ -27,7 +28,6 @@ type ProjectRow = {
   id: string;
   name: string;
   description: string | null;
-  progress: number;
   deadline: string | null;
   created_at: string;
   updated_at: string;
@@ -146,7 +146,9 @@ export class SupabaseRepository {
         id: project.id,
         name: project.name,
         description: project.description ?? undefined,
-        progress: project.progress,
+        progress: calculateProjectProgress(
+          tasksByProjectId.get(project.id) || []
+        ),
         deadline: project.deadline ?? undefined,
         tasks: tasksByProjectId.get(project.id) || [],
         createdAt: project.created_at,
@@ -287,6 +289,8 @@ export class SupabaseRepository {
       user_id: userId,
       name: project.name,
       description: project.description ?? null,
+      // Kept for compatibility with the V0.2 schema. Reads always derive this
+      // value from Tasks and never treat the column as authoritative.
       progress: project.progress,
       deadline: project.deadline ?? null,
       created_at: project.createdAt,

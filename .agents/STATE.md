@@ -24,6 +24,14 @@ English loop direction:
 
 `Listen + Read → Read Aloud → Pronunciation → Comprehension → Vocabulary → Retell → Review`
 
+## Product direction — functional upstream, gamification fork candidate (2026-10-19)
+
+**Current priority:** ship the smallest trustworthy MyPersonaOS experience quickly. The upstream product centers on Today, Inbox and fully working Tasks/Projects; defer the expanded Content Studio, English Lab and advanced PWA until after the functional MVP.
+
+**Abyssal Command** (missions, XP/AC, depth, ranks, companions, HUD customization and focus dives) is **out of scope for the upstream repository**, with a possible future **independent fork** suggested by the owner. No fork exists and none of the gamification systems are implemented. The original proposal is retained at `docs/abyssal-command-epic.md` as nonbinding reference; upstream [issue #20](https://github.com/dreyvinixz/MyPersonaOS/issues/20) is closed as not planned.
+
+The slim V0.3.0 tracker is [issue #21](https://github.com/dreyvinixz/MyPersonaOS/issues/21). Existing Local browser CRUD tests passed, but authenticated Cloud/Offline/Realtime validation and current dependency-audit triage remain gates before release.
+
 ## Technical foundation
 
 - Next.js 16.3 + App Router + Turbopack production build
@@ -111,6 +119,18 @@ Implemented:
 - bounded personal-data fields and a 15-second atomic-import statement timeout;
 - composite owner/newest-first indexes matching all full-state list queries;
 - covering index for the `tasks.project_id` foreign key.
+
+## V0.3 Tasks/Projects architecture
+
+- Tasks are the sole source of truth for project membership and progress.
+- `Project.tasks` and `Project.progress` are derived after Local or Cloud
+  adoption; derived-only changes do not create project mutations.
+- LocalStorage omits the duplicated `Project.tasks` cache while preserving the
+  global Tasks collection.
+- Calendar-only due dates/deadlines stay as `YYYY-MM-DD` in UI state to avoid
+  timezone day shifts while the V0.2 database columns remain `TIMESTAMPTZ`.
+- Node's built-in test runner covers reconciliation, persistence comparison,
+  local compaction, dangling relationships, and date-only parsing.
 
 ## Security/performance audit state
 
@@ -222,19 +242,25 @@ The product is personal/single-owner for now.
 
 ## Current milestone
 
-### V0.2 — Supabase Persistence, RLS & Private Multi-Device Sync
+### V0.3.0 — Functional MVP
 
-**Engineering status:** `RELEASED`
+**Engineering status:** `TASKS_PROJECTS_CRUD_IN_VALIDATION` (not released).
 
-V0.2 passed automated checks, SQL-level A/B RLS, RPC migration, authenticated browser validation, and production Vercel validation. It is deployed from `main`; production login, private-route redirects, the Service Worker, and current-deployment runtime logs were verified.
+Branch `agent/v0.3-tasks-projects-crud` contains implemented Tasks/Projects CRUD and six passing focused tests. Local desktop/mobile browser validation passed on 2026-08-19. The authenticated Cloud/Offline/Outbox/Realtime matrix was blocked by unavailable disposable browser session, not failed nor verified. [Issue #7](https://github.com/dreyvinixz/MyPersonaOS/issues/7) tracks the gate.
 
-Production adjustments:
-- Added `public/sw.js` (minimal PWA Service Worker) and client registration to resolve `404` warnings.
-- Filtered normal `Auth session missing!` unauthenticated states in `proxy.ts` and `AuthProvider.tsx` to prevent error-level log noise on Vercel.
+The fresh 2026-08-19 npm audit reported nine high-severity findings in transitive `nanoid`/`postcss` dependencies; their **current** status requires a new audit and triage before release ([issue #8](https://github.com/dreyvinixz/MyPersonaOS/issues/8)).
+
+Do not wait for date migration, complete Today close-day flows, advanced Content/English systems, gamification, broad refactors, or PWA polish to ship v0.3.0, unless a concrete blocker is found. Today's Main Focus text is persisted, but its visual completion check is local-only; avoid describing that checked state as synchronized until fixed.
+
+All decisions and links are in `ROADMAP.md` and [the V0.3 MVP tracker](https://github.com/dreyvinixz/MyPersonaOS/issues/21).
 
 ## Current Git workflow
 
-Released from:
+Active feature branch:
+
+`agent/v0.3-tasks-projects-crud`
+
+Base:
 
 `main`
 
@@ -242,9 +268,7 @@ Production:
 
 `https://my-persona-os.vercel.app`
 
-Release tag:
-
-`v0.2.0`
+V0.2 remains released as `v0.2.0`.
 
 
 ## Architectural guardrails

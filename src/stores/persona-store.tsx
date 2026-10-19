@@ -26,6 +26,7 @@ import {
   flushCloudOutbox,
   getPendingMutationCount,
 } from "@/lib/sync/outbox";
+import { reconcileProjects } from "@/lib/domain/project-reconciler";
 
 type PersonaStoreValue = {
   state: PersonaState;
@@ -48,7 +49,9 @@ const getServerHydrationSnapshot = () => false;
 export function PersonaProvider({ children }: { children: React.ReactNode }) {
   const { user, isCloudMode, loading: authLoading } = useAuth();
   const [state, setState] = useState<PersonaState>(() =>
-    isCloudMode ? createEmptyPersonaState() : localRepository.getState()
+    reconcileProjects(
+      isCloudMode ? createEmptyPersonaState() : localRepository.getState()
+    )
   );
   const stateRef = useRef(state);
   const activeScopeUserIdRef = useRef<string | null>(null);
@@ -66,14 +69,20 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
   const cloudReadyRef = useRef(false);
 
   const adoptState = useCallback((next: PersonaState) => {
-    stateRef.current = next;
-    setState(next);
+    const reconciled = reconcileProjects(next, { previous: stateRef.current });
+    stateRef.current = reconciled;
+    setState(reconciled);
+    return reconciled;
   }, []);
 
   const commitState = useCallback(
     (next: PersonaState) => {
-      adoptState(next);
-      localRepository.saveState(next, activeScopeUserIdRef.current ?? undefined);
+      const reconciled = adoptState(next);
+      localRepository.saveState(
+        reconciled,
+        activeScopeUserIdRef.current ?? undefined
+      );
+      return reconciled;
     },
     [adoptState]
   );
@@ -81,8 +90,8 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
   const normalizeLiveStateForCloud = useCallback(() => {
     const current = stateRef.current;
     const normalized = normalizeLegacySnapshot(current);
-    if (statesDiffer(current, normalized)) commitState(normalized);
-    return normalized;
+    if (statesDiffer(current, normalized)) return commitState(normalized);
+    return current;
   }, [commitState]);
 
   const flushQueuedMutations = useCallback(async (userId: string) => {
@@ -268,8 +277,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
       if (statesDiffer(previous, rawPrevious)) commitState(previous);
 
-      const next = updater(previous);
-      commitState(next);
+      const next = commitState(updater(previous));
 
       if (!isCloudMode || !user) return;
 

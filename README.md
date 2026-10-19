@@ -26,7 +26,7 @@ Explore the project documentation in the **[docs/](docs/)** directory:
 
 ## Getting Started
 
-**Requirement:** Node.js 20.9 or newer.
+**Requirement:** Node.js 24.x (matches the repository engines and CI).
 
 ### Quick Start (Local Development)
 
@@ -36,7 +36,7 @@ git clone https://github.com/dreyvinixz/MyPersonaOS.git
 cd MyPersonaOS
 
 # Install dependencies
-npm install
+npm ci
 
 # Run dev server
 npm run dev
@@ -46,9 +46,9 @@ Open [http://localhost:3000](http://localhost:3000) to view the application in y
 
 ---
 
-## Current Version (V0.1 Bootstrap)
+## Current releases and active development
 
-The initial version uses client-side state (`localStorage`) for fast capture and Today focus tasks so the UI and workflows can be iterated quickly before attaching cloud infrastructure.
+The current released version is v0.2.0 (Supabase Auth, PostgreSQL/RLS, private offline outbox and Realtime). The active v0.3.0 branch adds Tasks/Projects CRUD and is still in validation. Advanced modules remain roadmap work.
 
 ### Features Included
 
@@ -68,7 +68,7 @@ The initial version uses client-side state (`localStorage`) for fast capture and
 - **Styling**: Tailwind CSS v4
 - **Persistence (V0.2)**: Supabase (PostgreSQL, Auth, Realtime, Row Level Security)
 - **Deployment**: Vercel & PWA
-- **CI/CD**: GitHub Actions (`ci.yml` & `release.yml`)
+- **CI/CD & supply-chain security**: GitHub Actions CI, CodeQL, Dependency Review, Dependabot and npm registry signature / lockfile checks
 
 ---
 
@@ -86,3 +86,13 @@ See **[ROADMAP.md](ROADMAP.md)** for the canonical task-level roadmap and releas
 ## License
 
 Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
+
+## Dependency supply-chain policy
+
+- Use `npm ci` (never `npm install` for CI deployments) to reproduce the checked lockfile.
+- `.npmrc` blocks npm dependency lifecycle install scripts. New packages require human review.
+- CI validates official npm registry HTTPS origins, SHA-512 lockfile hashes, `npm audit`, npm registry signatures, tests and build.
+- Dependabot opens npm and GitHub Actions update PRs with a **7-day cooldown for routine versions** (14 days for majors); security updates are not delayed.
+- Dependency Review rejects newly introduced moderate-or-higher vulnerabilities. CodeQL scans the source.
+- No automatic merge for dependency updates. A signed registry tarball, audit, or provenance attestation **does not guarantee a package is benign**; review ownership, release provenance, change set, transitive dependencies and install scripts before approval.
+- Security alert/Dependabot features must be enabled in GitHub repository settings after merging the configuration into the default branch.

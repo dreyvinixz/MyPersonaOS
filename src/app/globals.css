@@ -1,6 +1,16 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Retain the existing typography when moving to Tailwind v4's CSS-first theme. */
+@theme {
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Tailwind v4 uses currentColor as the default border color; keep the Oil Slick tone. */
+@layer base {
+  *, ::before, ::after, ::backdrop, ::file-selector-button {
+    border-color: var(--border);
+  }
+}
 
 :root {
   /* Oil Slick — deep ink base */

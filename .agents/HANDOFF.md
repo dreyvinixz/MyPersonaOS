@@ -76,7 +76,83 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
 
 ---
 
-## Current Handoff — `main` / `v0.2.0`
+## Product and release priority update — 2026-10-19
+
+- Product owner now prioritizes a **functional upstream release as quickly as safe**, with Today/Inbox already present and Tasks/Projects CRUD available on the existing V0.3 feature branch.
+- Reduce V0.3.0 release scope to authenticated Cloud/Offline/Realtime validation (**#7**), current dependency findings triage (**#8**), critical Today/Inbox regression fixes (**#10**, only if necessary) and release checklist (**#15**). Tracker: **#21**.
+- Defer DATE schema migration (#9) except confirmed data-loss bugs, Content Studio (#11–12), English Lab (#13–14), broad refactors/security work without release impact (#16–18) and PWA improvements (#19).
+- **Abyssal Command** belongs to a possible future fork. No fork currently exists. Upstream issue #20 was closed `not_planned`, preserving the concept spec only as historical reference.
+- The original Cloud matrix and security gate remain **unproven**; do not mark as passed or merge before review. Do not bypass privacy/RLS/outbox integrity for speed.
+- This rescope is documentation/issue planning, **not** evidence of new tests, deployment, or code feature completion.
+
+---
+
+## Current Handoff — `agent/v0.3-tasks-projects-crud`
+
+### Mission
+
+Complete and validate the first V0.3 vertical slice: Tasks & Projects CRUD.
+
+### Status
+
+`IMPLEMENTED / LOCAL_BROWSER_PASS / CLOUD_MATRIX_BLOCKED`
+
+### Completed in this review
+
+1. Audited all six original feature files and the related Local/Supabase/outbox paths.
+2. Made Tasks the sole source of truth for project task membership and progress.
+3. Prevented derived task/progress changes from creating Cloud project upserts.
+4. Removed duplicated project task arrays from persisted LocalStorage snapshots.
+5. Preserved calendar dates without Brazil/UTC day shifts.
+6. Completed priority/project/deadline presentation and mobile/keyboard controls.
+7. Replaced incomplete `Task` casts and timestamp IDs with explicit dialog props and `createEntityId()`.
+8. Added six focused tests using Node 24's built-in runner and wired them into CI.
+
+### Validation
+
+- `npm test` — passed, 6/6.
+- `npm run lint` — passed.
+- `npx tsc --noEmit` — passed.
+- `npm run security:scan` — passed for 99 tracked files.
+- `npm audit --audit-level=moderate` — passed, 0 vulnerabilities.
+- `npm run build` — passed, 9/9 static pages generated.
+- Local desktop/mobile browser matrix — passed on 2026-08-19 through Chromium
+  CDP after the sandbox blocked `agent-browser` Unix sockets.
+- Local CRUD evidence — Project create/edit/delete; Task create/edit/reschedule/
+  complete/delete; link removal on Project delete; 1/2 derived progress = 50%;
+  reload persistence; `YYYY-MM-DD` preservation; 390×844 controls with no
+  horizontal overflow; no runtime exception/overlay/network failure.
+- Cloud auth boundary — passed: unauthenticated `/` redirected to `/login`
+  without private shell content.
+- Supabase health — passed: project healthy, four migrations, six RLS tables,
+  and zero personal rows before/after partial validation.
+- Authenticated Cloud CRUD, Offline/Outbox, and two-session Realtime — blocked:
+  the clean environment had no authenticated homologation browser session.
+- Fresh dependency audit — failed on 2026-08-19: 9 high findings in the
+  transitive `nanoid`/`postcss` chain; npm reported no fix available.
+- Registry verification — passed: 407 signatures and 92 attestations.
+
+Detailed steps and evidence are in
+`docs/v0.3-tasks-projects-validation.md`.
+
+### Next best action
+
+Establish a disposable authenticated homologation browser session and resume
+`V03-TP-01` at authenticated Cloud CRUD, then Offline/Outbox and two-session
+Realtime. Do not mark the slice complete or begin hardening/Today/Data work from
+the Local pass alone.
+
+### Product direction registered — 2026-08-19
+
+`Abyssal Command & Oceanic Gamification` is approved as a planned post-V0.3
+epic. Its product concept, reward table, sequencing, transaction/sync guardrails,
+and release gates are recorded in `docs/abyssal-command-epic.md` and linked from
+`ROADMAP.md`. No gamification code, schema, asset, dependency, commit, or push was
+created as part of this decision. The active next action remains `V03-TP-01`.
+
+---
+
+## Historical Handoff — `main` / `v0.2.0`
 
 ### Mission
 
@@ -184,4 +260,3 @@ Begin V0.3 Core Workflows from the canonical queue in `ROADMAP.md`, starting wit
 5. [x] Review and merge Pull Request #5 to `main`.
 6. [x] Validate the production Vercel deployment and prepare tag `v0.2.0`.
 7. Continue the `SEC-*`/`PERF-*` queue in `ROADMAP.md` (beginning with runtime snapshot validation and splitting `PersonaProvider`).
-

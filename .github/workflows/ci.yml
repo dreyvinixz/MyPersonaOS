@@ -31,15 +31,24 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
-      - name: Audit dependencies
+      - name: Verify pinned npm lockfile sources
+        run: npm run security:lock
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
+      - name: Audit full dependency tree with reviewed development-only exceptions
         run: |
-          npm audit --audit-level=moderate
+          node scripts/audit-dev-dependencies.mjs
           npm audit signatures
 
       - name: Scan tracked files for secrets
         run: npm run security:scan
+
+      - name: Run domain tests
+        run: npm test
 
       - name: Run ESLint
         run: npm run lint
