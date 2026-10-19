@@ -24,23 +24,13 @@ English loop direction:
 
 `Listen + Read → Read Aloud → Pronunciation → Comprehension → Vocabulary → Retell → Review`
 
-## Approved post-V0.3 product direction
+## Product direction — functional upstream, gamification fork candidate (2026-10-19)
 
-**Abyssal Command & Oceanic Gamification** is approved as a planned post-V0.3
-epic. It reframes Tasks as underwater expedition missions and adds focus dives,
-XP, Aqua Credits, depth zones, diver ranks, bioluminescent companions, and
-cosmetic HUD/submarine unlocks.
+**Current priority:** ship the smallest trustworthy MyPersonaOS experience quickly. The upstream product centers on Today, Inbox and fully working Tasks/Projects; defer the expanded Content Studio, English Lab and advanced PWA until after the functional MVP.
 
-This direction is not implemented and does not change the active release gate.
-`V03-TP-01` and all remaining V0.3 exit criteria come first. Before persistent
-gamification ships, the design requires an idempotent reward/purchase model,
-Local/Cloud/outbox/Realtime convergence, `SEC-11` runtime validation, and
-accessibility/performance budgets. Level/rank/unlock eligibility should be
-derived from canonical XP, depth, balance, ownership, equipment, and reward
-events rather than stored as independently mutable copies.
+**Abyssal Command** (missions, XP/AC, depth, ranks, companions, HUD customization and focus dives) is **out of scope for the upstream repository**, with a possible future **independent fork** suggested by the owner. No fork exists and none of the gamification systems are implemented. The original proposal is retained at `docs/abyssal-command-epic.md` as nonbinding reference; upstream [issue #20](https://github.com/dreyvinixz/MyPersonaOS/issues/20) is closed as not planned.
 
-Canonical epic specification:
-`docs/abyssal-command-epic.md`.
+The slim V0.3.0 tracker is [issue #21](https://github.com/dreyvinixz/MyPersonaOS/issues/21). Existing Local browser CRUD tests passed, but authenticated Cloud/Offline/Realtime validation and current dependency-audit triage remain gates before release.
 
 ## Technical foundation
 
@@ -252,22 +242,17 @@ The product is personal/single-owner for now.
 
 ## Current milestone
 
-### V0.3 — Core Workflows
+### V0.3.0 — Functional MVP
 
-**Engineering status:** `TASKS_PROJECTS_CRUD_IN_VALIDATION`
+**Engineering status:** `TASKS_PROJECTS_CRUD_IN_VALIDATION` (not released).
 
-The Tasks/Projects CRUD vertical slice is implemented and its focused domain
-tests, TypeScript, lint, secret scan, and build checks pass. The real Local Mode
-desktop/mobile browser matrix passed on 2026-08-19, including reload persistence,
-Project deletion without dangling Task relationships, date preservation, and
-derived progress. Authenticated Cloud/Offline/Outbox/Realtime validation remains
-the release gate before starting the Today planning loop because the clean
-validation environment had no authenticated homologation browser session.
+Branch `agent/v0.3-tasks-projects-crud` contains implemented Tasks/Projects CRUD and six passing focused tests. Local desktop/mobile browser validation passed on 2026-08-19. The authenticated Cloud/Offline/Outbox/Realtime matrix was blocked by unavailable disposable browser session, not failed nor verified. [Issue #7](https://github.com/dreyvinixz/MyPersonaOS/issues/7) tracks the gate.
 
-The fresh 2026-08-19 dependency audit reports nine high-severity findings in the
-transitive `nanoid`/`postcss` chain with no npm-provided fix. Registry signatures
-and attestations still verify. This must be triaged before the slice is closed;
-do not repeat the older zero-vulnerability claim for the current lockfile.
+The fresh 2026-08-19 npm audit reported nine high-severity findings in transitive `nanoid`/`postcss` dependencies; their **current** status requires a new audit and triage before release ([issue #8](https://github.com/dreyvinixz/MyPersonaOS/issues/8)).
+
+Do not wait for date migration, complete Today close-day flows, advanced Content/English systems, gamification, broad refactors, or PWA polish to ship v0.3.0, unless a concrete blocker is found. Today's Main Focus text is persisted, but its visual completion check is local-only; avoid describing that checked state as synchronized until fixed.
+
+All decisions and links are in `ROADMAP.md` and [the V0.3 MVP tracker](https://github.com/dreyvinixz/MyPersonaOS/issues/21).
 
 ## Current Git workflow
 
