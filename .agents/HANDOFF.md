@@ -76,6 +76,17 @@ Use this document as the canonical handoff whenever work is unfinished, blocked,
 
 ---
 
+## Product and release priority update — 2026-10-19
+
+- Product owner now prioritizes a **functional upstream release as quickly as safe**, with Today/Inbox already present and Tasks/Projects CRUD available on the existing V0.3 feature branch.
+- Reduce V0.3.0 release scope to authenticated Cloud/Offline/Realtime validation (**#7**), current dependency findings triage (**#8**), critical Today/Inbox regression fixes (**#10**, only if necessary) and release checklist (**#15**). Tracker: **#21**.
+- Defer DATE schema migration (#9) except confirmed data-loss bugs, Content Studio (#11–12), English Lab (#13–14), broad refactors/security work without release impact (#16–18) and PWA improvements (#19).
+- **Abyssal Command** belongs to a possible future fork. No fork currently exists. Upstream issue #20 was closed `not_planned`, preserving the concept spec only as historical reference.
+- The original Cloud matrix and security gate remain **unproven**; do not mark as passed or merge before review. Do not bypass privacy/RLS/outbox integrity for speed.
+- This rescope is documentation/issue planning, **not** evidence of new tests, deployment, or code feature completion.
+
+---
+
 ## Current Handoff — `agent/v0.3-tasks-projects-crud`
 
 ### Mission
