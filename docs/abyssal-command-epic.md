@@ -1,3 +1,16 @@
+> **Status update — 2026-10-19: upstream fork proposal / not a core release commitment.**
+>
+> The owner wants a functional MyPersonaOS as soon as possible and is considering pursuing
+> oceanic gamification in a separate **future fork**. This specification remains only
+> a reusable idea reference. It does not authorize gamification changes to the
+> upstream `main`, or block V0.3.0. No fork has been created.
+> Upstream tracking [issue #20](https://github.com/dreyvinixz/MyPersonaOS/issues/20)
+> was closed as not planned. See the revised `ROADMAP.md` and issue #21.
+>
+> The sections below preserve the original 2026-08-19 proposal as historical context.
+
+---
+
 # Abyssal Command & Oceanic Gamification
 
 > Status: `PLANNED / POST-V0.3`
